@@ -60,6 +60,7 @@ func NewAPI(
 	}
 
 	router.POST("/move", a.MovePost)
+	router.GET("/stream", a.Stream)
 
 	return a
 }
