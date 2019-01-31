@@ -19,7 +19,11 @@ The web server for GrowBot Web.
     - **do not** add any IDEA-related workspace folder to Git.
     - configure `gofmt` on save—it is not a default feature. Here are [instructions](https://stackoverflow.com/questions/33774950/execute-gofmt-on-file-save-in-intellij) to configure `gofmt` on file save. (This Stack Overflow link has not been tested, so you may find other instructions online that are easier to follow.)
 
-1. Git commits must be [clean, atomic,](https://chris.beams.io/posts/git-commit/) and most importantly, follow the [seven sacred rules](https://chris.beams.io/posts/git-commit/#seven-rules). If you have a big commit that needs splitting up, and you're not sure how to do this, please ask for assistance.
+1. Git commits must be [clean, atomic,](https://chris.beams.io/posts/git-commit/) and most importantly, follow the [seven sacred rules](https://chris.beams.io/posts/git-commit/#seven-rules).
+
+    If you have a big commit that needs splitting up, you can use `git add --patch` (in short, `git add -p`) to interactively stage [hunks](https://www.bignerdranch.com/blog/using-git-hunks/).
+
+    If you are stuck, please ask for assistance!
 
 1. In your folder of choice run `git clone github.com/qaisjp/sdp-web-server`.
 
