@@ -68,6 +68,10 @@ Refer to [./internal/config](/internal/config/config.go) to see what each of the
 
 Please note that `0.0.0.0:8080` means "bind to all addresses, port 8080". You should try to connect to your loopback address instead of `0.0.0.0:8080`. This is usually `127.0.0.1` or `localhost`.
 
+Instead of using environment variables or command-line arguments, you can use a YAML, JSON or TOML file.
+- Just use the argument names as a data key. See `config.example.yml` as an example.
+- To use a config file, e.g. `config.yml`, set the `config` environment variable, like so: `config=config.yml growbot-api`.
+
 ## Nomenclature
 
 - `uuid`s are provided by either [`github.com/satori/go.uuid`](https://godoc.org/github.com/satori/go.uuid) or [`github.com/google/uuid`](https://godoc.org/github.com/google/uuid). Most likely the former, but this will be pinned down later.
