@@ -119,6 +119,17 @@ Clients connected to this websocket server will receive updates in the following
 
 This data will just be a string contain the cardinal direction `north` or `south`.
 
+### Stage 2
+
+All, or a subset of, the following tasks:
+
+1. Pin down security practices
+1. Add database schema
+1. Add user system
+1. Allow users to register robots to their account
+1. Streaming data back to the central server
+1. ???
+
 ## Software License
 
 This software is governed by the license defined in [/LICENSE](/LICENSE) at the root of this repository.
