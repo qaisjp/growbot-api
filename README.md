@@ -34,7 +34,7 @@ The web server for GrowBot Web.
     If you run into a `command not found` error, please jump to step 1 and re-read the [Go installation instructions].
 
 1. Now, from any directory, you can run the following command: `go install github.com/teamxiv/growbot-api/cmd/growbot-api`.
-    - This will build the program in `cmd/growbot-api` to your `$GOPATH/bin` directory (in step 1 you should have added this path to your `$PATH`).
+    - This will build the command-line program (from [`./cmd/growbot-api`](/cmd/growbot-api/main.go)) to your `$GOPATH/bin` directory (in step 1 you should have added this path to your `$PATH`).
     - You can now simply type `growbot-api` from any directory to start the API.
 
 ## Running
