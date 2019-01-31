@@ -56,6 +56,8 @@ Generated environment variables:
 flag: help requested
 ```
 
+Refer to [./internal/config](/internal/config/config.go) to see what each of these options mean.
+
 Please note that `0.0.0.0:8080` means "bind to all addresses, port 8080". You should try to connect to your loopback address instead of `0.0.0.0:8080`. This is usually `127.0.0.1` or `localhost`.
 
 ## Nomenclature
