@@ -11,6 +11,10 @@ The web server for GrowBot Web.
 
     You should also add `$GOPATH/bin` to your `$PATH`. This is so that any self-built binaries (such as [`goimports`](https://godoc.org/golang.org/x/tools/cmd/goimports)) are easy to run.
 
+1. Already have Go set up? Make sure `go version` says you are running go 1.11 or later. We use [the new Go Modules system](https://blog.golang.org/modules2019), so if necessary, follow the [Go installation instructions] to upgrade.
+
+    Curious about Go Modules? See the Go [Modules](https://github.com/golang/go/wiki/Modules) wiki page!
+
 1. Make sure your editor is set up correctly. All files should be correctly formatted as per `go fmt`.
 
     We recommend you to use any of the following extensions with the obvious editors: [vscode-go](https://code.visualstudio.com/docs/languages/go), [GoSublime](https://packagecontrol.io/packages/GoSublime) or [vim-go](https://github.com/fatih/vim-go). These all run `gofmt` whenever you save a `.go` file. (You may find using `goimports` instead of `gofmt` more convenient.)
