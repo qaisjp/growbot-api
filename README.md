@@ -90,6 +90,24 @@ The API is not stable as this project is very much in rapid development.
 
 This is a very primitive version of the API with minimal care for security. The aim here is to get a proof-of-concept version of the API functioning.
 
+#### GET `/status`
+
+Returns the status of a robot.
+
+Authenticated: _true_
+
+Query parameters:
+
+- `id` (robot uuid)
+
+Example response:
+
+```json
+{
+    "online": true
+}
+```
+
 #### POST `/move`
 
 Requests a specific robot to move in a certain direction.

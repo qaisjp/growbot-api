@@ -59,6 +59,7 @@ func NewAPI(
 		Gin:    router,
 	}
 
+	router.GET("/status", a.StatusGet)
 	router.POST("/move", a.MovePost)
 	router.GET("/stream/:uuid", a.StreamRobot)
 
