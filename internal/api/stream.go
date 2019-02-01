@@ -67,7 +67,7 @@ func (i *API) StreamRobot(ctx *gin.Context) {
 		defer robotCtxsMutex.Unlock()
 
 		if robotCtxs[rid] == ctx {
-			robotCtxs[rid] = nil
+			delete(robotCtxs, rid)
 		}
 	}()
 
