@@ -111,6 +111,12 @@ Payload:
 }
 ```
 
+Responses:
+
+- 400 Bad Request: if input does not match above schema
+- 404 Not Found: if the robot is not connected
+- 200 OK: if the request was sent to the robot (receival is not guaranteed)
+
 #### GET `/stream/<uuid>` (websocket)
 
 This endpoint is for robots to receive live updates to the API. The website will use a separate websocket endpoint that is not limited to one robot.
