@@ -72,6 +72,10 @@ Instead of using environment variables or command-line arguments, you can use a 
 - Just use the argument names as a data key. See `config.example.yml` as an example.
 - To use a config file, e.g. `config.yml`, set the `config` environment variable, like so: `config=config.yml growbot-api`.
 
+### Test websockets
+
+You can use [wsc](https://github.com/danielstjules/wsc). Just do `yarn global add wsc` and then `wsc -er "ws://localhost:8080/stream/<uuid>` should work!
+
 ## Nomenclature
 
 - `uuid`s are provided by either [`github.com/satori/go.uuid`](https://godoc.org/github.com/satori/go.uuid) or [`github.com/google/uuid`](https://godoc.org/github.com/google/uuid). Most likely the former, but this will be pinned down later.
