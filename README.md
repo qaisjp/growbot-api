@@ -92,6 +92,8 @@ This is a very primitive version of the API with minimal care for security. The 
 
 #### POST `/move`
 
+Requests a specific robot to move in a certain direction.
+
 Authenticated: _true_
 
 Query parameters: _none_
