@@ -132,7 +132,7 @@ Payload:
 Responses:
 
 - 400 Bad Request: if input does not match above schema
-- 404 Not Found: if the robot is not connected
+- 404 Not Found: if the robot is not online (see [`/status`](#get-status))
 - 200 OK: if the request was sent to the robot (receival is not guaranteed)
 
 #### GET `/stream/<uuid>` (websocket)
