@@ -2,8 +2,11 @@ package api
 
 import (
 	"log"
+	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -13,15 +16,61 @@ var upgrader = websocket.Upgrader{
 	// WriteBufferSize: 1024,
 }
 
-func (i *API) Stream(ctx *gin.Context) {
+var robotCtxs = make(map[uuid.UUID]*gin.Context)
+var robotCtxsMutex = &sync.Mutex{}
+
+func (i *API) StreamRobot(ctx *gin.Context) {
 	w, r := ctx.Writer, ctx.Request
+
+	var rid uuid.UUID
+	var err error
+	if rid, err = uuid.Parse(ctx.Param("uuid")); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{})
+		return
+	}
+
+	if rid != i.Config.UUID {
+		ctx.JSON(http.StatusForbidden, gin.H{})
+		return
+	}
 
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Print("upgrade:", err)
 		return
 	}
-	defer c.Close()
+
+	// Set the websocket connection on the context
+	ctx.Set("ws", c)
+
+	// Add this websocket connection to the map (and cancel the existing one)
+	{
+		robotCtxsMutex.Lock()
+
+		// Close the old one if it exists
+		oldCtx, exists := robotCtxs[rid]
+		if exists {
+			ws := oldCtx.MustGet("ws").(*websocket.Conn)
+			ws.Close()
+		}
+
+		// Add the new context
+		robotCtxs[rid] = ctx
+
+		robotCtxsMutex.Unlock()
+	}
+
+	defer func() {
+		c.Close()
+
+		robotCtxsMutex.Lock()
+		defer robotCtxsMutex.Unlock()
+
+		if robotCtxs[rid] == ctx {
+			robotCtxs[rid] = nil
+		}
+	}()
+
 	for {
 		mt, message, err := c.ReadMessage()
 		if err != nil {

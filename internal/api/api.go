@@ -60,7 +60,7 @@ func NewAPI(
 	}
 
 	router.POST("/move", a.MovePost)
-	router.GET("/stream", a.Stream)
+	router.GET("/stream/:uuid", a.StreamRobot)
 
 	return a
 }
