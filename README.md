@@ -78,7 +78,7 @@ You can use [wsc](https://github.com/danielstjules/wsc). Just do `yarn global ad
 
 ## Nomenclature
 
-- `uuid`s are provided by either [`github.com/satori/go.uuid`](https://godoc.org/github.com/satori/go.uuid) or [`github.com/google/uuid`](https://godoc.org/github.com/google/uuid). Most likely the former, but this will be pinned down later.
+- `uuid`s are provided by [`github.com/google/uuid`](https://godoc.org/github.com/google/uuid).
 
     UUIDs will generally be used as the serial number of the robot. User accounts will most likely use an `int64` as their primary key.
 
