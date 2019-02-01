@@ -107,7 +107,7 @@ Payload:
 ```json
 {
     "id": "uuid", // robot uuid
-    "direction": "(north|south)"
+    "direction": "(forward|backwards|left|right)"
 }
 ```
 
