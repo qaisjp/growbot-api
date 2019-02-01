@@ -20,8 +20,8 @@ func (i *API) MovePost(c *gin.Context) {
 	}
 
 	payload := struct {
-		Type string
-		Data string
+		Type string `json:"type"`
+		Data string `json:"data"`
 	}{
 		Type: "move",
 		Data: result.Direction,
