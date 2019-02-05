@@ -148,6 +148,20 @@ Payload:
 }
 ```
 
+#### PATCH `/settings
+
+This tells the robot to update a setting. The value can be any valid JSON type and depends on the key used.
+
+Example payload:
+
+```json
+{
+    "id": "uuid",
+    "key": "object_avoidance",
+    "value": false
+}
+```
+
 #### GET `/stream/<uuid>` (websocket)
 
 This endpoint is for robots to receive live updates to the API. The website will use a separate websocket endpoint that is not limited to one robot.
@@ -179,6 +193,10 @@ This data will just be a string contain the cardinal direction `north` or `south
 ##### type: `demo/start`, data: `string`
 
 This is just be the procedure name of the demo to run.
+
+##### type: `settings/patch`, data: `{Key: "keystr", Value: <any>}`
+
+This tells the robot to update a setting. The value can be any valid JSON type and depends on the key used.
 
 ### Stage 2
 
