@@ -61,6 +61,7 @@ func NewAPI(
 
 	router.GET("/status", a.StatusGet)
 	router.POST("/move", a.MovePost)
+	router.POST("/demo/start", a.DemoStartPost)
 	router.GET("/stream/:uuid", a.StreamRobot)
 
 	return a

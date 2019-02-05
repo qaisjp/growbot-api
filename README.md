@@ -135,6 +135,19 @@ Responses:
 - 404 Not Found: if the robot is not online (see [`/status`](#get-status))
 - 200 OK: if the request was sent to the robot (receival is not guaranteed)
 
+#### POST `/demo/start`
+
+Requests a specific robot to start a demo using the procedure name.
+
+Payload:
+
+```json
+{
+    "id": "uuid",
+    "procedure": "square"
+}
+```
+
 #### GET `/stream/<uuid>` (websocket)
 
 This endpoint is for robots to receive live updates to the API. The website will use a separate websocket endpoint that is not limited to one robot.
@@ -162,6 +175,10 @@ Clients connected to this websocket server will receive updates in the following
 ##### type: `move`, data: `string`
 
 This data will just be a string contain the cardinal direction `north` or `south`.
+
+##### type: `demo/start`, data: `string`
+
+This is just be the procedure name of the demo to run.
 
 ### Stage 2
 
