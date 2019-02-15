@@ -1,6 +1,7 @@
 config.yml
 /growbot-api
 /cmd/growbot-api/growbot-api
+/cmd/growbot-ws-test/growbot-ws-test
 
 # Created by https://www.gitignore.io/api/macos,intellij+all
 # Edit at https://www.gitignore.io/?templates=macos,intellij+all
