@@ -24,6 +24,10 @@ func main() {
 	flag.Parse()
 	log.SetFlags(0)
 
+	if *uuid == "" {
+		log.Fatal("expected uuid, got empty string")
+	}
+
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
