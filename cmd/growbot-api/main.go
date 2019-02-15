@@ -7,9 +7,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 	"github.com/teamxiv/growbot-api/internal/api"
 	"github.com/teamxiv/growbot-api/internal/config"
+	"github.com/teamxiv/growbot-api/internal/database"
 
 	"github.com/koding/multiconfig"
 )
@@ -33,9 +35,28 @@ func main() {
 		"module": "init",
 	}).Info("Starting up growbot-api")
 
+	// Initialize the database
+	var db *sqlx.DB
+
+	db, err = database.NewPostgres(cfg.Database)
+	if err != nil {
+		logger.WithFields(logrus.Fields{
+			"module": "init",
+			"error":  err.Error(),
+			"cstr":   cfg.Database.ConnectionString,
+		}).Fatal("Unable to connect to the database server")
+		return
+	}
+
+	logger.WithFields(logrus.Fields{
+		"module": "init",
+		"cstr":   cfg.Database.ConnectionString,
+	}).Info("Connected to a Postgres server")
+
 	api := api.NewAPI(
 		cfg,
 		logger,
+		db,
 	)
 
 	go func() {

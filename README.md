@@ -45,6 +45,19 @@ The web server for GrowBot Web.
     - This will build the command-line program (from [`./cmd/growbot-api`](/cmd/growbot-api/main.go)) to your `$GOPATH/bin` directory (in step 1 you should have added this path to your `$PATH`).
     - You can now simply type `growbot-api` from any directory to start the API.
 
+## Set up database
+
+**Install postgresql (on macOS)**
+- Run `brew install postgresql`
+- Read the caveats
+- Run `brew services run postgresql` (`start` will run & also tell postgresql to start on boot, you probably don't want to start it on boot)
+
+**Set up permissions**
+- Run `psql postgres` to open a postgres shell
+- Execute `create role growbot with login;` to create a `growbot` "role" that is able to log in (so it's basically a user). This user has no password for convenience.
+- Execute `create database growbot_dev;`
+- Execute `grant all privileges on database growbot_dev to growbot;` to give our `growbot` user admin permissions on `db growbot_dev`
+
 ## Running
 
 Command line documentation is available by supplying the `--help` argument. As of 737fa69e9799f8886103180ed318395b8a863c96 the following text is printed:

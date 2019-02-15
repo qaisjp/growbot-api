@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 	"github.com/teamxiv/growbot-api/internal/config"
 )
@@ -15,6 +16,7 @@ type API struct {
 	Config *config.Config
 	Log    *logrus.Logger
 	Gin    *gin.Engine
+	DB     *sqlx.DB
 
 	Server *http.Server
 }
@@ -48,6 +50,7 @@ func BadRequest(c *gin.Context, msg string) {
 func NewAPI(
 	conf *config.Config,
 	log *logrus.Logger,
+	db *sqlx.DB,
 ) *API {
 
 	router := gin.Default()
@@ -57,6 +60,7 @@ func NewAPI(
 		Config: conf,
 		Log:    log,
 		Gin:    router,
+		DB:     db,
 	}
 
 	router.GET("/status", a.StatusGet)

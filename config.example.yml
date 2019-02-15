@@ -1,2 +1,5 @@
 # You can generate a UUIDv4 from https://www.uuidgenerator.net/version4
 uuid: "35ae6830-d961-4a9c-937f-8aa5bc61d6a3"
+bindaddress: "0.0.0.0:8080"
+database:
+  connectionstring: "user=growbot dbname=growbot_dev sslmode=disable"
