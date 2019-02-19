@@ -72,24 +72,24 @@ func NewAPI(
 
 	// Authentication
 	auth := router.Group("/auth")
-	auth.POST("/login", a.NotImplemented)
-	auth.POST("/register", a.NotImplemented)
-	auth.POST("/forgot", a.NotImplemented)
-	auth.POST("/chgpass", a.NotImplemented)
+	auth.POST("/login", a.AuthLoginPost)
+	auth.POST("/register", a.AuthRegisterPost)
+	auth.POST("/forgot", a.AuthForgotPost)
+	auth.POST("/chgpass", a.AuthChgPassPost)
 
 	// Robots
 	robots := router.Group("/robots")
-	robots.GET("", a.NotImplemented) // List robots
-	robots.POST("/register", a.NotImplemented)
+	robots.GET("", a.RobotListGet) // List robots
+	robots.POST("/register", a.RobotRegisterPost)
 
 	// A robot
 	aRobot := router.Group("/robot/:uuid")
-	aRobot.GET("", a.NotImplemented)    // Get (status) info
-	aRobot.DELETE("", a.NotImplemented) // Delete this bot
-	aRobot.POST("/move", a.NotImplemented)
-	aRobot.POST("/startDemo", a.NotImplemented)
-	aRobot.PATCH("/settings", a.NotImplemented)
-	aRobot.GET("/stream", a.NotImplemented)
+	aRobot.GET("", a.RobotStatusGet) // Get (status) info
+	aRobot.DELETE("", a.RobotDelete) // Delete this bot
+	aRobot.POST("/move", a.RobotMovePost)
+	aRobot.POST("/startDemo", a.RobotStartDemoPost)
+	aRobot.PATCH("/settings", a.RobotSettingsPatch)
+	aRobot.GET("/stream", a.RobotStream)
 
 	// Legacy
 	router.GET("/status", a.StatusGet)
