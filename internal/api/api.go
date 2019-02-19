@@ -46,6 +46,10 @@ func BadRequest(c *gin.Context, msg string) {
 	})
 }
 
+func (a *API) NotImplemented(c *gin.Context) {
+	c.JSON(http.StatusNotImplemented, gin.H{"message": "not implemented (yet)"})
+}
+
 // NewAPI sets up a new API module.
 func NewAPI(
 	conf *config.Config,
@@ -63,6 +67,31 @@ func NewAPI(
 		DB:     db,
 	}
 
+	// General websocket
+	router.GET("/stream", a.NotImplemented)
+
+	// Authentication
+	auth := router.Group("/auth")
+	auth.POST("/login", a.NotImplemented)
+	auth.POST("/register", a.NotImplemented)
+	auth.POST("/forgot", a.NotImplemented)
+	auth.POST("/chgpass", a.NotImplemented)
+
+	// Robots
+	robots := router.Group("/robots")
+	robots.GET("", a.NotImplemented) // List robots
+	robots.POST("/register", a.NotImplemented)
+
+	// A robot
+	aRobot := router.Group("/robot/:uuid")
+	aRobot.GET("", a.NotImplemented)    // Get (status) info
+	aRobot.DELETE("", a.NotImplemented) // Delete this bot
+	aRobot.POST("/move", a.NotImplemented)
+	aRobot.POST("/startDemo", a.NotImplemented)
+	aRobot.PATCH("/settings", a.NotImplemented)
+	aRobot.GET("/stream", a.NotImplemented)
+
+	// Legacy
 	router.GET("/status", a.StatusGet)
 	router.POST("/move", a.MovePost)
 	router.POST("/demo/start", a.DemoStartPost)
