@@ -1,4 +1,4 @@
-PSQL_USER=postgres
+PSQL_USER=growbot
 
 .PHONY: schema
 
