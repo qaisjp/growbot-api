@@ -20,6 +20,28 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: robot_state; Type: TABLE; Schema: public; Owner: growbot
+--
+
+CREATE TABLE public.robot_state (
+    uuid text NOT NULL,
+    battery_level integer DEFAULT 0 NOT NULL,
+    seen_at time without time zone
+);
+
+
+ALTER TABLE public.robot_state OWNER TO growbot;
+
+--
+-- Name: TABLE robot_state; Type: COMMENT; Schema: public; Owner: growbot
+--
+
+COMMENT ON TABLE public.robot_state IS 'All fields are mandatory, except that seen_at has the special case where if it''s `null`, the robot has not been "seen" yet. That is to say, the robot hasn''t been turned on yet.
+
+This is so that the interactive interfaces can report "Not seen yet" instead of just the default (blank) values.';
+
+
+--
 -- Name: robots; Type: TABLE; Schema: public; Owner: growbot
 --
 
@@ -127,6 +149,14 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
+-- Name: robot_state robot_state_id_pkey; Type: CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.robot_state
+    ADD CONSTRAINT robot_state_id_pkey PRIMARY KEY (uuid);
+
+
+--
 -- Name: robots robots_uuid_pkey; Type: CONSTRAINT; Schema: public; Owner: growbot
 --
 
@@ -171,6 +201,14 @@ ALTER TABLE ONLY public.users
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_id_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: robot_state robot_state_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.robot_state
+    ADD CONSTRAINT robot_state_id_fkey FOREIGN KEY (uuid) REFERENCES public.robots(uuid);
 
 
 --
