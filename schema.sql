@@ -24,7 +24,7 @@ SET default_with_oids = false;
 --
 
 CREATE TABLE public.robot_state (
-    uuid text NOT NULL,
+    id text NOT NULL,
     battery_level integer DEFAULT 0 NOT NULL,
     seen_at time without time zone
 );
@@ -46,7 +46,7 @@ This is so that the interactive interfaces can report "Not seen yet" instead of 
 --
 
 CREATE TABLE public.robots (
-    uuid text NOT NULL,
+    id text NOT NULL,
     admin_token text NOT NULL,
     user_id integer,
     room_id integer,
@@ -153,15 +153,15 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 --
 
 ALTER TABLE ONLY public.robot_state
-    ADD CONSTRAINT robot_state_id_pkey PRIMARY KEY (uuid);
+    ADD CONSTRAINT robot_state_id_pkey PRIMARY KEY (id);
 
 
 --
--- Name: robots robots_uuid_pkey; Type: CONSTRAINT; Schema: public; Owner: growbot
+-- Name: robots robots_id_pkey; Type: CONSTRAINT; Schema: public; Owner: growbot
 --
 
 ALTER TABLE ONLY public.robots
-    ADD CONSTRAINT robots_uuid_pkey PRIMARY KEY (uuid);
+    ADD CONSTRAINT robots_id_pkey PRIMARY KEY (id);
 
 
 --
@@ -208,7 +208,7 @@ ALTER TABLE ONLY public.users
 --
 
 ALTER TABLE ONLY public.robot_state
-    ADD CONSTRAINT robot_state_id_fkey FOREIGN KEY (uuid) REFERENCES public.robots(uuid);
+    ADD CONSTRAINT robot_state_id_fkey FOREIGN KEY (id) REFERENCES public.robots(id);
 
 
 --
