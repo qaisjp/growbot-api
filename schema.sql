@@ -104,7 +104,7 @@ CREATE TABLE public.users (
     surname text NOT NULL,
     password character(60) NOT NULL,
     email character varying(254) NOT NULL,
-    is_verified boolean DEFAULT false NOT NULL,
+    is_activated boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL
 );
