@@ -20,6 +20,22 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: robots; Type: TABLE; Schema: public; Owner: growbot
+--
+
+CREATE TABLE public.robots (
+    uuid text NOT NULL,
+    admin_token text NOT NULL,
+    user_id integer,
+    room_id integer,
+    created_at time without time zone DEFAULT now() NOT NULL,
+    updated_at time without time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.robots OWNER TO growbot;
+
+--
 -- Name: rooms; Type: TABLE; Schema: public; Owner: growbot
 --
 
@@ -111,6 +127,14 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
+-- Name: robots robots_uuid_pkey; Type: CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.robots
+    ADD CONSTRAINT robots_uuid_pkey PRIMARY KEY (uuid);
+
+
+--
 -- Name: rooms rooms_id_pkey; Type: CONSTRAINT; Schema: public; Owner: growbot
 --
 
@@ -147,6 +171,22 @@ ALTER TABLE ONLY public.users
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_id_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: robots robots_room_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.robots
+    ADD CONSTRAINT robots_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id);
+
+
+--
+-- Name: robots robots_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.robots
+    ADD CONSTRAINT robots_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
