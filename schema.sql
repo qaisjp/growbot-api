@@ -26,6 +26,8 @@ SET default_with_oids = false;
 CREATE TABLE public.robot_state (
     id text NOT NULL,
     battery_level integer DEFAULT 0 NOT NULL,
+    water_level integer DEFAULT 0 NOT NULL,
+    distress boolean DEFAULT false NOT NULL,
     seen_at time without time zone
 );
 
