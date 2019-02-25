@@ -35,7 +35,7 @@ The web server for GrowBot Web.
 
     If you clone the repository anywhere else on your filesystem, the folder does not matter.
 
-1. Run `go get` to download dependencies. ~~Once you have the repository cloned, type `go mod download` to download dependencies. Then type `go mod verify` to verify that all is OK.~~
+1. Run `go get ./...` to download dependencies. ~~Once you have the repository cloned, type `go mod download` to download dependencies. Then type `go mod verify` to verify that all is OK.~~
 
     If you run into a `command not found` error, please jump to step 1 and re-read the [Go installation instructions].
 
