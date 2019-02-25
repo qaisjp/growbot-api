@@ -121,6 +121,7 @@ func NewAPI(
 	auth := router.Group("/auth")
 	{
 		auth.POST("/login", authMiddleware.LoginHandler)
+		auth.POST("/refresh", authMiddleware.RefreshHandler)
 		auth.POST("/register", a.AuthRegisterPost)
 		auth.POST("/forgot", a.AuthForgotPost)
 		auth.POST("/chgpass", a.AuthChgPassPost)
@@ -134,7 +135,7 @@ func NewAPI(
 	}
 
 	// A robot
-	aRobot := router.Group("/robot/:uuid", authRequired)
+	aRobot := router.Group("/robot/:uuid", authRequired, a.RobotCheck)
 	{
 		aRobot.GET("", a.RobotStatusGet) // Get (status) info
 		aRobot.DELETE("", a.RobotDelete) // Delete this bot
@@ -144,7 +145,6 @@ func NewAPI(
 	}
 
 	// Legacy
-	router.GET("/status", a.StatusGet)
 	router.POST("/move", a.MovePost)
 	router.POST("/demo/start", a.DemoStartPost)
 	router.PATCH("/settings", a.SettingsPatch)
