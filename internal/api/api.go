@@ -144,10 +144,5 @@ func NewAPI(
 		aRobot.PATCH("/settings", a.RobotSettingsPatch)
 	}
 
-	// Legacy
-	router.POST("/move", a.MovePost)
-	router.POST("/demo/start", a.DemoStartPost)
-	router.PATCH("/settings", a.SettingsPatch)
-
 	return a
 }

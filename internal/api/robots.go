@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/gorilla/websocket"
 	"github.com/teamxiv/growbot-api/internal/models"
 
 	"github.com/gin-gonic/gin"
@@ -57,13 +58,127 @@ func (a *API) RobotDelete(c *gin.Context) {
 }
 
 func (a *API) RobotMovePost(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"message": "not implemented (yet)"})
+	robot := c.MustGet("robot").(*models.Robot)
+
+	var result struct {
+		Direction string
+	}
+
+	if err := c.BindJSON(&result); err != nil {
+		BadRequest(c, err.Error())
+		return
+	}
+
+	payload := struct {
+		Type string `json:"type"`
+		Data string `json:"data"`
+	}{
+		Type: "move",
+		Data: result.Direction,
+	}
+
+	robotCtxsMutex.Lock()
+	wctx, ok := robotCtxs[robot.ID]
+	robotCtxsMutex.Unlock()
+
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Robot not found",
+		})
+		return
+	}
+
+	wsc := wctx.MustGet("ws").(*websocket.Conn)
+	wsc.WriteJSON(payload)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+	})
 }
 
 func (a *API) RobotStartDemoPost(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"message": "not implemented (yet)"})
+	robot := c.MustGet("robot").(*models.Robot)
+
+	var result struct {
+		Procedure string
+	}
+
+	if err := c.BindJSON(&result); err != nil {
+		BadRequest(c, err.Error())
+		return
+	}
+
+	payload := struct {
+		Type string `json:"type"`
+		Data string `json:"data"`
+	}{
+		Type: "demo/start",
+		Data: result.Procedure,
+	}
+
+	robotCtxsMutex.Lock()
+	wctx, ok := robotCtxs[robot.ID]
+	robotCtxsMutex.Unlock()
+
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Robot not found",
+		})
+		return
+	}
+
+	wsc := wctx.MustGet("ws").(*websocket.Conn)
+	wsc.WriteJSON(payload)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+	})
 }
 
 func (a *API) RobotSettingsPatch(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"message": "not implemented (yet)"})
+	robot := c.MustGet("robot").(*models.Robot)
+
+	var result struct {
+		Key   string
+		Value interface{}
+	}
+
+	type settingsOut struct {
+		Key   string
+		Value interface{}
+	}
+
+	if err := c.BindJSON(&result); err != nil {
+		BadRequest(c, err.Error())
+		return
+	}
+
+	payload := struct {
+		Type string      `json:"type"`
+		Data settingsOut `json:"data"`
+	}{
+		Type: "settings/patch",
+		Data: settingsOut{
+			Key:   result.Key,
+			Value: result.Value,
+		},
+	}
+
+	robotCtxsMutex.Lock()
+	wctx, ok := robotCtxs[robot.ID]
+	robotCtxsMutex.Unlock()
+
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Robot not found",
+		})
+		return
+	}
+
+	wsc := wctx.MustGet("ws").(*websocket.Conn)
+	wsc.WriteJSON(payload)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+	})
 }
