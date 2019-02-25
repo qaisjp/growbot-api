@@ -53,8 +53,8 @@ The web server for GrowBot Web.
 **Set up permissions**
 - Run `psql postgres` to open a postgres shell
 - Execute `create role growbot with login;` to create a `growbot` "role" that is able to log in (so it's basically a user). This user has no password for convenience.
-- Execute `create database growbot_dev;`
-- Execute `grant all privileges on database growbot_dev to growbot;` to give our `growbot` user admin permissions on `db growbot_dev`
+- Run `make reset_schema` to create a database, give our `growbot` user admin permissions on `db growbot_dev`, and set the database schema
+- **If you make updates to the database structure**: run `make schema.sql` to dump the _database schema_. It is **not** a full data dump with all rows.
 
 ## Running
 
