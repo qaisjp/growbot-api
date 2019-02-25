@@ -3,8 +3,9 @@ PSQL_USER=growbot
 .PHONY: schema
 
 reset_schema::
-	dropdb -U ${PSQL_USER} growbot_dev --if-exists
-	createdb -U ${PSQL_USER} growbot_dev
+	dropdb growbot_dev --if-exists
+	createdb growbot_dev
+	psql growbot_dev -c 'grant all privileges on database growbot_dev to growbot;'
 	cat schema.sql | psql -U ${PSQL_USER} growbot_dev > /dev/null
 	@echo "Schema has been reset!"
 
