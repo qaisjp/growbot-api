@@ -25,12 +25,16 @@ func (i *API) StreamRobot(ctx *gin.Context) {
 	var rid uuid.UUID
 	var err error
 	if rid, err = uuid.Parse(ctx.Param("uuid")); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{})
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": err.Error(),
+		})
 		return
 	}
 
 	if rid != i.Config.UUID {
-		ctx.JSON(http.StatusForbidden, gin.H{})
+		ctx.JSON(http.StatusForbidden, gin.H{
+			"message": "invalid uuid",
+		})
 		return
 	}
 

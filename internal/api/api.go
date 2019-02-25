@@ -3,7 +3,9 @@ package api
 import (
 	"context"
 	"net/http"
+	"time"
 
+	jwt "github.com/appleboy/gin-jwt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
@@ -67,36 +69,85 @@ func NewAPI(
 		DB:     db,
 	}
 
-	// General websocket
-	router.GET("/stream", a.NotImplemented)
+	// the jwt middleware
+	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
+		Realm:           "test zone",
+		Key:             []byte("secret key"),
+		Timeout:         time.Hour,
+		MaxRefresh:      time.Hour,
+		IdentityKey:     "id",
+		PayloadFunc:     a.jwtPayloadFunc,
+		IdentityHandler: a.jwtIdentityHandler,
+		Authenticator:   a.jwtAuthenticator,
+		Authorizator:    a.jwtAuthorizator,
+		Unauthorized:    a.jwtUnauthorized,
+		// TokenLookup is a string in the form of "<source>:<name>" that is used
+		// to extract token from the request.
+		// Optional. Default value "header:Authorization".
+		// Possible values:
+		// - "header:<name>"
+		// - "query:<name>"
+		// - "cookie:<name>"
+		// - "param:<name>"
+		TokenLookup: "header: Authorization, query: token, cookie: jwt",
+		// TokenLookup: "query:token",
+		// TokenLookup: "cookie:token",
+	})
+
+	if err != nil {
+		log.WithField("error", err).Fatal("jwt error")
+	}
+
+	// router.NoRoute(authMiddleware.MiddlewareFunc(), func(c *gin.Context) {
+	// 	claims := jwt.ExtractClaims(c)
+	// 	log.Printf("NoRoute claims: %#v\n", claims)
+	// 	c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
+	// })
+
+	// Actual auth middleware
+	authRequired := authMiddleware.MiddlewareFunc()
+
+	// Stream
+	stream := router.Group("/stream")
+	{
+		// General websocket
+		stream.GET("", authRequired, a.NotImplemented)
+
+		// Robots can connect to the stream without authentication
+		stream.GET("/:uuid", a.StreamRobot)
+	}
 
 	// Authentication
 	auth := router.Group("/auth")
-	auth.POST("/login", a.AuthLoginPost)
-	auth.POST("/register", a.AuthRegisterPost)
-	auth.POST("/forgot", a.AuthForgotPost)
-	auth.POST("/chgpass", a.AuthChgPassPost)
+	{
+		auth.POST("/login", authMiddleware.LoginHandler)
+		auth.POST("/register", a.AuthRegisterPost)
+		auth.POST("/forgot", a.AuthForgotPost)
+		auth.POST("/chgpass", a.AuthChgPassPost)
+	}
 
 	// Robots
-	robots := router.Group("/robots")
-	robots.GET("", a.RobotListGet) // List robots
-	robots.POST("/register", a.RobotRegisterPost)
+	robots := router.Group("/robots", authRequired)
+	{
+		robots.GET("", a.RobotListGet) // List robots
+		robots.POST("/register", a.RobotRegisterPost)
+	}
 
 	// A robot
-	aRobot := router.Group("/robot/:uuid")
-	aRobot.GET("", a.RobotStatusGet) // Get (status) info
-	aRobot.DELETE("", a.RobotDelete) // Delete this bot
-	aRobot.POST("/move", a.RobotMovePost)
-	aRobot.POST("/startDemo", a.RobotStartDemoPost)
-	aRobot.PATCH("/settings", a.RobotSettingsPatch)
-	aRobot.GET("/stream", a.RobotStream)
+	aRobot := router.Group("/robot/:uuid", authRequired)
+	{
+		aRobot.GET("", a.RobotStatusGet) // Get (status) info
+		aRobot.DELETE("", a.RobotDelete) // Delete this bot
+		aRobot.POST("/move", a.RobotMovePost)
+		aRobot.POST("/startDemo", a.RobotStartDemoPost)
+		aRobot.PATCH("/settings", a.RobotSettingsPatch)
+	}
 
 	// Legacy
 	router.GET("/status", a.StatusGet)
 	router.POST("/move", a.MovePost)
 	router.POST("/demo/start", a.DemoStartPost)
 	router.PATCH("/settings", a.SettingsPatch)
-	router.GET("/stream/:uuid", a.StreamRobot)
 
 	return a
 }

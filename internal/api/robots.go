@@ -33,7 +33,3 @@ func (a *API) RobotStartDemoPost(c *gin.Context) {
 func (a *API) RobotSettingsPatch(c *gin.Context) {
 	c.JSON(http.StatusNotImplemented, gin.H{"message": "not implemented (yet)"})
 }
-
-func (a *API) RobotStream(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"message": "not implemented (yet)"})
-}

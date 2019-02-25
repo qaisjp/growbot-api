@@ -103,7 +103,7 @@ func (a *API) AuthRegisterPost(c *gin.Context) {
 	// ...
 
 	// Create the row
-	result, err := a.DB.NamedQuery("insert into users(forename, surname, email, password, activated) values (:forename, :surname, :email, :password, :activated) RETURNING id", row)
+	result, err := a.DB.NamedQuery("insert into users(forename, surname, email, password, is_activated) values (:forename, :surname, :email, :password, :is_activated) RETURNING id", row)
 	if err != nil {
 		BadRequest(c, err.Error())
 		return
@@ -114,9 +114,7 @@ func (a *API) AuthRegisterPost(c *gin.Context) {
 		result.Rows.Scan(&n)
 
 		c.JSON(http.StatusOK, gin.H{
-			"expire": "todo",
-			"token":  "asdfsdf",
-			"id":     n,
+			"message": "success",
 		})
 	} else {
 		BadRequest(c, result.Rows.Err().Error())
