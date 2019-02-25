@@ -9,39 +9,6 @@ import (
 	"github.com/teamxiv/growbot-api/internal/models"
 )
 
-func (a *API) AuthLoginPost(c *gin.Context) {
-	var input struct {
-		Email    string
-		Password string
-	}
-
-	err := c.BindJSON(&input)
-	if err != nil {
-		BadRequest(c, err.Error())
-		return
-	}
-
-	var user models.User
-
-	err = a.DB.Get(&user, "select id,password from users where email = $1 limit 1", input.Email)
-	if err != nil {
-		BadRequest(c, err.Error())
-		return
-	}
-
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password))
-	if err != nil {
-		BadRequest(c, err.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"expire": "todo",
-		"token":  "asdfsdf",
-		"id":     user.ID,
-	})
-}
-
 // AuthRegisterPost takes:
 // - forename
 // - surname
