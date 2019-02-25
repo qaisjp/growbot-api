@@ -29,13 +29,11 @@ The web server for GrowBot Web.
 
     If you are stuck, please ask for assistance!
 
-1. In your folder of choice run `git clone github.com/qaisjp/sdp-web-server`.
+1. In your folder of choice run `git clone github.com/teamxiv/growbot-api`.
 
     If you clone the repository inside your `$GOPATH`, make sure the root of the repository is situated at exactly `$GOPATH/src/github.com/teamxiv/growbot-api`.
 
     If you clone the repository anywhere else on your filesystem, the folder does not matter.
-
-    _Why does the folder name matter at all?_ The actual _package_ name is `github.com/teamxiv/growbot-api` whereas for now the _repository_ is situated at `qaisjp/sdp-web-server`. These will both align when the repository is made public. Paths inside `$GOPATH` determine packages, elsewhere (i.e. not in `$GOPATH`) the package name is determined by the `go.mod` file.
 
 1. Once you have the repository cloned, type `go mod download` to download dependencies. Then type `go mod verify` to verify that all is OK.
 
