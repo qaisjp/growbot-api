@@ -10,8 +10,8 @@ import (
 type Robot struct {
 	ID         uuid.UUID `json:"id" db:"id"`
 	AdminToken string    `json:"-" db:"admin_token"`
-	UserID     string    `json:"user_id,omitempty" db:"user_id"`
-	RoomID     string    `json:"room_id,omitempty" db:"room_id"`
+	UserID     *int      `json:"user_id,omitempty" db:"user_id"`
+	RoomID     *int      `json:"room_id,omitempty" db:"room_id"`
 
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
@@ -29,5 +29,5 @@ type RobotState struct {
 	WaterLevel   int       `json:"water_level" db:"water_level"`
 	Distress     bool      `json:"distress" db:"distress"`
 
-	SeenAt time.Time `json:"seen_at" db:"seen_at"`
+	SeenAt *time.Time `json:"seen_at" db:"seen_at"`
 }

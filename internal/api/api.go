@@ -75,7 +75,7 @@ func NewAPI(
 		Key:             []byte("secret key"),
 		Timeout:         time.Hour,
 		MaxRefresh:      time.Hour,
-		IdentityKey:     "id",
+		IdentityKey:     "user_id",
 		PayloadFunc:     a.jwtPayloadFunc,
 		IdentityHandler: a.jwtIdentityHandler,
 		Authenticator:   a.jwtAuthenticator,

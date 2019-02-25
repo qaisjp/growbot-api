@@ -52,9 +52,7 @@ func (a *API) jwtAuthenticator(c *gin.Context) (interface{}, error) {
 func (a *API) jwtIdentityHandler(c *gin.Context) interface{} {
 	claims := jwt.ExtractClaims(c)
 
-	return &models.User{
-		ID: int(claims["id"].(float64)),
-	}
+	return int(claims["id"].(float64))
 }
 
 func (a *API) jwtPayloadFunc(data interface{}) jwt.MapClaims {
