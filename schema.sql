@@ -42,7 +42,7 @@ CREATE TABLE public.robot_state (
     battery_level integer DEFAULT 0 NOT NULL,
     water_level integer DEFAULT 0 NOT NULL,
     distress boolean DEFAULT false NOT NULL,
-    seen_at time without time zone
+    seen_at timestamp without time zone
 );
 
 
@@ -66,8 +66,8 @@ CREATE TABLE public.robots (
     admin_token text NOT NULL,
     user_id integer,
     title text DEFAULT ''::text NOT NULL,
-    created_at time without time zone DEFAULT now() NOT NULL,
-    updated_at time without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL
 );
 
 
