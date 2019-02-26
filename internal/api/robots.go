@@ -42,6 +42,8 @@ func (a *API) RobotCheck(c *gin.Context) {
 	c.Set("robot", &robot)
 }
 
+// RobotListGet requires you to be logged in.
+// It lists all robots the user owns + the robot state.
 func (a *API) RobotListGet(c *gin.Context) {
 	user_id := c.GetInt("user_id")
 
@@ -62,6 +64,11 @@ func (a *API) RobotListGet(c *gin.Context) {
 	})
 }
 
+// RobotRegisterPost takes a "robot_id" in the JSON body.
+// It registers the robot corresponding to the UUID to the currently logged in user.
+//
+// Usually returns HTTP Status OK.
+// Otherwise complains.
 func (a *API) RobotRegisterPost(c *gin.Context) {
 	user_id := c.GetInt("user_id")
 
@@ -99,20 +106,45 @@ func (a *API) RobotRegisterPost(c *gin.Context) {
 	})
 }
 
+// RobotStatusGet returns the state of the robot + whether or not it is currently connected
 func (a *API) RobotStatusGet(c *gin.Context) {
 	robot := c.MustGet("robot").(*models.Robot)
 
+	var state struct {
+		models.RobotState
+		Connected bool `json:"is_connected"`
+	}
+
+	err := a.DB.Get(&state, "select * from robot_state where id = $1", robot.ID)
+	if err != nil {
+		BadRequest(c, err.Error())
+		return
+	}
+
 	robotCtxsMutex.Lock()
-	_, online := robotCtxs[robot.ID]
+	_, connected := robotCtxs[robot.ID]
 	robotCtxsMutex.Unlock()
 
-	c.JSON(http.StatusOK, gin.H{
-		"online": online,
-	})
+	state.Connected = connected
+
+	c.JSON(http.StatusOK, state)
 }
 
+// RobotDelete disassociates the robot from the current user
 func (a *API) RobotDelete(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"message": "not implemented (yet)"})
+	robot := c.MustGet("robot").(*models.Robot)
+
+	_, err := a.DB.Exec("update robots set user_id=null,room_id=null where id=$1", robot.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "could not delete row: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+	})
 }
 
 func (a *API) RobotMovePost(c *gin.Context) {
