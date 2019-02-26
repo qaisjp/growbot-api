@@ -60,7 +60,12 @@ func NewAPI(
 ) *API {
 
 	router := gin.Default()
-	router.Use(cors.Default())
+
+	corsConf := cors.DefaultConfig()
+	corsConf.AddAllowHeaders("Authorization")
+	corsConf.AllowAllOrigins = true
+
+	router.Use(cors.New(corsConf))
 
 	a := &API{
 		Config: conf,
