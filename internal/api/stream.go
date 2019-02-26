@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/teamxiv/growbot-api/internal/models"
 )
 
 var upgrader = websocket.Upgrader{
@@ -31,9 +32,11 @@ func (i *API) StreamRobot(ctx *gin.Context) {
 		return
 	}
 
-	if rid != i.Config.UUID {
+	var robot models.Robot
+
+	if err := i.DB.Get(&robot, "select * from robots where id = $1", rid); err != nil {
 		ctx.JSON(http.StatusForbidden, gin.H{
-			"message": "invalid uuid",
+			"message": "invalid uuid: " + err.Error(),
 		})
 		return
 	}
