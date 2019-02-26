@@ -54,7 +54,40 @@ func (a *API) RobotListGet(c *gin.Context) {
 }
 
 func (a *API) RobotRegisterPost(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"message": "not implemented (yet)"})
+	user_id := c.GetInt("user_id")
+
+	input := struct {
+		RobotID uuid.UUID `json:"robot_id"`
+	}{}
+
+	err := c.BindJSON(&input)
+	if err != nil {
+		BadRequest(c, err.Error())
+		return
+	}
+
+	var robot models.Robot
+
+	err = a.DB.Get(&robot, "select * from robots where id = $1", input.RobotID)
+	if err != nil {
+		BadRequest(c, err.Error())
+		return
+	}
+
+	if robot.UserID != nil {
+		BadRequest(c, "This robot has already been registered. Please email us.")
+		return
+	}
+
+	_, err = a.DB.Exec("update robots set user_id=$1 where id=$2 returning id", user_id, input.RobotID)
+	if err != nil {
+		BadRequest(c, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+	})
 }
 
 func (a *API) RobotStatusGet(c *gin.Context) {
