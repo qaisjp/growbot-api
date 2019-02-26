@@ -53,7 +53,7 @@ func (a *API) RobotListGet(c *gin.Context) {
 		models.RobotState
 	}{}
 
-	err := a.DB.Select(&robots, "select robots.id as robot_id,created_at,updated_at,robot_state.* from robots,robot_state where robots.user_id=$1 and robot_state.id=robots.id", user_id)
+	err := a.DB.Select(&robots, "select robots.id as robot_id,created_at,updated_at,robot_state.*,title from robots,robot_state where robots.user_id=$1 and robot_state.id=robots.id", user_id)
 	if err != nil {
 		BadRequest(c, err.Error())
 		return
@@ -74,12 +74,17 @@ func (a *API) RobotRegisterPost(c *gin.Context) {
 
 	input := struct {
 		RobotID uuid.UUID `json:"robot_id"`
+		Title   string    `json:"title"`
 	}{}
 
 	err := c.BindJSON(&input)
 	if err != nil {
 		BadRequest(c, err.Error())
 		return
+	}
+
+	if input.Title == "" {
+		input.Title = "Unnamed Robot"
 	}
 
 	var robot models.Robot
@@ -95,7 +100,7 @@ func (a *API) RobotRegisterPost(c *gin.Context) {
 		return
 	}
 
-	_, err = a.DB.Exec("update robots set user_id=$1 where id=$2 returning id", user_id, input.RobotID)
+	_, err = a.DB.Exec("update robots set user_id=$1, title=$3 where id=$2 returning id", user_id, input.RobotID, input.Title)
 	if err != nil {
 		BadRequest(c, err.Error())
 		return

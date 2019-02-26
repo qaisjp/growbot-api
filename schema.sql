@@ -51,50 +51,13 @@ CREATE TABLE public.robots (
     id text NOT NULL,
     admin_token text NOT NULL,
     user_id integer,
-    room_id integer,
+    title text DEFAULT '' NOT NULL,
     created_at time without time zone DEFAULT now() NOT NULL,
     updated_at time without time zone DEFAULT now() NOT NULL
 );
 
 
 ALTER TABLE public.robots OWNER TO growbot;
-
---
--- Name: rooms; Type: TABLE; Schema: public; Owner: growbot
---
-
-CREATE TABLE public.rooms (
-    id integer NOT NULL,
-    user_id integer NOT NULL,
-    name text NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at time without time zone DEFAULT now() NOT NULL
-);
-
-
-ALTER TABLE public.rooms OWNER TO growbot;
-
---
--- Name: rooms_id_seq; Type: SEQUENCE; Schema: public; Owner: growbot
---
-
-CREATE SEQUENCE public.rooms_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.rooms_id_seq OWNER TO growbot;
-
---
--- Name: rooms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: growbot
---
-
-ALTER SEQUENCE public.rooms_id_seq OWNED BY public.rooms.id;
-
 
 --
 -- Name: users; Type: TABLE; Schema: public; Owner: growbot
@@ -137,13 +100,6 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
--- Name: rooms id; Type: DEFAULT; Schema: public; Owner: growbot
---
-
-ALTER TABLE ONLY public.rooms ALTER COLUMN id SET DEFAULT nextval('public.rooms_id_seq'::regclass);
-
-
---
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: growbot
 --
 
@@ -164,29 +120,6 @@ ALTER TABLE ONLY public.robot_state
 
 ALTER TABLE ONLY public.robots
     ADD CONSTRAINT robots_id_pkey PRIMARY KEY (id);
-
-
---
--- Name: rooms rooms_id_pkey; Type: CONSTRAINT; Schema: public; Owner: growbot
---
-
-ALTER TABLE ONLY public.rooms
-    ADD CONSTRAINT rooms_id_pkey PRIMARY KEY (id);
-
-
---
--- Name: rooms rooms_user_id_name_key; Type: CONSTRAINT; Schema: public; Owner: growbot
---
-
-ALTER TABLE ONLY public.rooms
-    ADD CONSTRAINT rooms_user_id_name_key UNIQUE (user_id, name);
-
-
---
--- Name: CONSTRAINT rooms_user_id_name_key ON rooms; Type: COMMENT; Schema: public; Owner: growbot
---
-
-COMMENT ON CONSTRAINT rooms_user_id_name_key ON public.rooms IS 'A user cannot have multiple rooms with the same name';
 
 
 --
@@ -214,27 +147,11 @@ ALTER TABLE ONLY public.robot_state
 
 
 --
--- Name: robots robots_room_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: growbot
---
-
-ALTER TABLE ONLY public.robots
-    ADD CONSTRAINT robots_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id);
-
-
---
 -- Name: robots robots_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: growbot
 --
 
 ALTER TABLE ONLY public.robots
     ADD CONSTRAINT robots_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
---
--- Name: rooms rooms_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: growbot
---
-
-ALTER TABLE ONLY public.rooms
-    ADD CONSTRAINT rooms_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --

@@ -11,7 +11,7 @@ type Robot struct {
 	ID         uuid.UUID `json:"id" db:"id"`
 	AdminToken string    `json:"-" db:"admin_token"`
 	UserID     *int      `json:"user_id,omitempty" db:"user_id"`
-	RoomID     *int      `json:"room_id,omitempty" db:"room_id"`
+	Title      *string   `json:"title,omitempty" db:"title"`
 
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
