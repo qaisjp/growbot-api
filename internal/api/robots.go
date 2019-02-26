@@ -10,6 +10,8 @@ import (
 	"github.com/google/uuid"
 )
 
+// RobotCheck is a middleware to check whether the passed robot uuid exists,
+// and confirms whether the currently logged in user owns that robot
 func (a *API) RobotCheck(c *gin.Context) {
 	id := c.Param("uuid")
 	rid, err := uuid.Parse(id)
@@ -19,15 +21,22 @@ func (a *API) RobotCheck(c *gin.Context) {
 		return
 	}
 
-	// Check if the robot exists
-	exists := rid == a.Config.UUID
-	if !exists {
-		BadRequest(c, "Robot "+rid.String()+" does not exist")
+	robot := models.Robot{}
+	err = a.DB.Get(&robot, "select * from robots where id = $1", rid)
+	if err != nil {
+		BadRequest(c, "Robot does not exist ("+err.Error()+")")
 		c.Abort()
 		return
 	}
 
-	robot := models.Robot{}
+	if uid := robot.UserID; uid == nil || *uid != c.GetInt("user_id") {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"status":  "error",
+			"message": "you don't own that robot",
+		})
+		c.Abort()
+		return
+	}
 
 	// Store the robot in the context
 	c.Set("robot", &robot)
