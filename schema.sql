@@ -51,7 +51,7 @@ CREATE TABLE public.robots (
     id text NOT NULL,
     admin_token text NOT NULL,
     user_id integer,
-    title text DEFAULT '' NOT NULL,
+    title text DEFAULT ''::text NOT NULL,
     created_at time without time zone DEFAULT now() NOT NULL,
     updated_at time without time zone DEFAULT now() NOT NULL
 );
