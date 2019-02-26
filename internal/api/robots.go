@@ -139,7 +139,7 @@ func (a *API) RobotStatusGet(c *gin.Context) {
 func (a *API) RobotDelete(c *gin.Context) {
 	robot := c.MustGet("robot").(*models.Robot)
 
-	_, err := a.DB.Exec("update robots set user_id=null,room_id=null where id=$1", robot.ID)
+	_, err := a.DB.Exec("update robots set user_id=null,title='' where id=$1", robot.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": "could not delete row: " + err.Error(),
