@@ -129,7 +129,7 @@ func NewAPI(
 		auth.POST("/refresh", authMiddleware.RefreshHandler)
 		auth.POST("/register", a.AuthRegisterPost)
 		auth.POST("/forgot", a.AuthForgotPost)
-		auth.POST("/chgpass", a.AuthChgPassPost)
+		auth.POST("/chgpass", authRequired, a.AuthChgPassPost)
 	}
 
 	// Robots

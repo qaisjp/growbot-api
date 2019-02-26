@@ -9,6 +9,14 @@ import (
 	"github.com/teamxiv/growbot-api/internal/models"
 )
 
+func validatePassword(pw string) (bool, string) {
+	if len(pw) < 8 {
+		return false, "Password too short"
+	}
+
+	return true, ""
+}
+
 // AuthRegisterPost takes:
 // - forename
 // - surname
@@ -39,8 +47,9 @@ func (a *API) AuthRegisterPost(c *gin.Context) {
 		return
 	}
 
-	if len(input.Password) < 8 {
-		BadRequest(c, "Password too short")
+	success, errMsg := validatePassword(input.Password)
+	if !success {
+		BadRequest(c, errMsg)
 		return
 	}
 
@@ -93,5 +102,56 @@ func (a *API) AuthForgotPost(c *gin.Context) {
 }
 
 func (a *API) AuthChgPassPost(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"message": "not implemented (yet)"})
+	userID := c.GetInt("user_id")
+
+	input := struct {
+		Old string `json:"old"`
+		New string `json:"new"`
+	}{}
+
+	err := c.BindJSON(&input)
+	if err != nil {
+		BadRequest(c, err.Error())
+		return
+	}
+
+	success, errMsg := validatePassword(input.New)
+	if !success {
+		BadRequest(c, errMsg)
+		return
+	}
+
+	var user models.User
+
+	err = a.DB.Get(&user, "select id,password from users where id = $1 limit 1", userID)
+	if err != nil {
+		BadRequest(c, err.Error())
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Old))
+	if err != nil {
+		BadRequest(c, err.Error())
+		return
+	}
+
+	// Bcrypt this password
+	password, err := bcrypt.GenerateFromPassword([]byte(input.New), bcrypt.DefaultCost)
+	if err != nil {
+		BadRequest(c, err.Error())
+	}
+
+	_, err = a.DB.Exec("update users set password = $2 where id = $1", userID, password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "error",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "Successfully updated password!",
+	})
 }
