@@ -20,6 +20,7 @@ checkpoint::
 
 # restore latest dev backup
 restore_checkpoint::
-	dropdb -U ${PSQL_USER} growbot_dev
-	createdb -U ${PSQL_USER} growbot_dev
+	dropdb growbot_dev
+	createdb growbot_dev
+	psql growbot_dev -c 'grant all privileges on database growbot_dev to growbot;'
 	pg_restore -U ${PSQL_USER} -d growbot_dev $$(find dev_backup | grep \.dump | sort | tail -n 1)
