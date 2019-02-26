@@ -164,7 +164,7 @@ CREATE TRIGGER trig_create_state AFTER INSERT ON public.robots FOR EACH ROW EXEC
 --
 
 ALTER TABLE ONLY public.robot_state
-    ADD CONSTRAINT robot_state_id_fkey FOREIGN KEY (id) REFERENCES public.robots(id);
+    ADD CONSTRAINT robot_state_id_fkey FOREIGN KEY (id) REFERENCES public.robots(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
