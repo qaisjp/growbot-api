@@ -15,6 +15,20 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET row_security = off;
 
+--
+-- Name: growbot_create_state(); Type: FUNCTION; Schema: public; Owner: growbot
+--
+
+CREATE FUNCTION public.growbot_create_state() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$begin
+	insert into robot_state(id) values (new.id);
+	return new;
+end;$$;
+
+
+ALTER FUNCTION public.growbot_create_state() OWNER TO growbot;
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -136,6 +150,13 @@ ALTER TABLE ONLY public.users
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_id_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: robots trig_create_state; Type: TRIGGER; Schema: public; Owner: growbot
+--
+
+CREATE TRIGGER trig_create_state AFTER INSERT ON public.robots FOR EACH ROW EXECUTE PROCEDURE public.growbot_create_state();
 
 
 --
