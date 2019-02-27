@@ -96,6 +96,12 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 	// Set the websocket connection on the context
 	ctx.Set("ws", c)
 
+	// Update seen_at
+	_, err = a.DB.Exec("update robot_state set seen_at=now() where id = $1", rid)
+	if err != nil {
+		a.Log.WithError(err).WithField("rid", rid).Warnln("Could not update seen_at")
+	}
+
 	// Add this websocket connection to the map (and cancel the existing one)
 	{
 		robotCtxsMutex.Lock()
