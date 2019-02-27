@@ -48,7 +48,7 @@ func init() {
 }
 
 // VideoDeathThreshold is the duration we wait before we show the "dead" image
-const VideoDeathThreshold = time.Second * 2
+const VideoDeathThreshold = time.Second * 5
 
 // VideoDeathFrequency is the frequency of which we send the "dead"
 const VideoDeathFrequency = time.Second
