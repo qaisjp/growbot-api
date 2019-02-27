@@ -186,8 +186,8 @@ func (a *API) RobotMovePost(c *gin.Context) {
 	robotCtxsMutex.Unlock()
 
 	if !ok {
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "Robot not found",
+		c.JSON(http.StatusFailedDependency, gin.H{
+			"message": "Robot not connected",
 		})
 		return
 	}
@@ -225,8 +225,8 @@ func (a *API) RobotStartDemoPost(c *gin.Context) {
 	robotCtxsMutex.Unlock()
 
 	if !ok {
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "Robot not found",
+		c.JSON(http.StatusFailedDependency, gin.H{
+			"message": "Robot not connected",
 		})
 		return
 	}
@@ -273,8 +273,8 @@ func (a *API) RobotSettingsPatch(c *gin.Context) {
 	robotCtxsMutex.Unlock()
 
 	if !ok {
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "Robot not found",
+		c.JSON(http.StatusFailedDependency, gin.H{
+			"message": "Robot not connected",
 		})
 		return
 	}
