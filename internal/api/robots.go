@@ -242,7 +242,7 @@ func (a *API) RobotStartDemoPost(c *gin.Context) {
 func (a *API) RobotSettingsPatch(c *gin.Context) {
 	robot := c.MustGet("robot").(*models.Robot)
 
-	var result struct {
+	var input struct {
 		Key   string
 		Value interface{}
 	}
@@ -252,8 +252,25 @@ func (a *API) RobotSettingsPatch(c *gin.Context) {
 		Value interface{}
 	}
 
-	if err := c.BindJSON(&result); err != nil {
+	if err := c.BindJSON(&input); err != nil {
 		BadRequest(c, err.Error())
+		return
+	}
+
+	// Key `title` is special, database only.
+	if input.Key == "title" {
+		_, err := a.DB.Exec("update robots set title = $2 where id = $1", robot.ID, input.Value)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "Could not update database: " + err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "success",
+			"message": "Robot has been renamed",
+		})
 		return
 	}
 
@@ -263,8 +280,8 @@ func (a *API) RobotSettingsPatch(c *gin.Context) {
 	}{
 		Type: "settings/patch",
 		Data: settingsOut{
-			Key:   result.Key,
-			Value: result.Value,
+			Key:   input.Key,
+			Value: input.Value,
 		},
 	}
 
