@@ -82,7 +82,7 @@ func (a *API) GetStream(rid uuid.UUID) *Stream {
 	return stream
 }
 
-func (i *API) StreamRobot(ctx *gin.Context) {
+func (a *API) StreamRobot(ctx *gin.Context) {
 	w, r := ctx.Writer, ctx.Request
 
 	rid := ctx.MustGet("robot").(*models.Robot).ID
@@ -125,17 +125,23 @@ func (i *API) StreamRobot(ctx *gin.Context) {
 	}()
 
 	for {
-		mt, message, err := c.ReadMessage()
+		_, _, err := c.ReadMessage()
 		if err != nil {
 			log.Println("read:", err)
 			break
 		}
-		log.Printf("recv: %s", message)
-		err = c.WriteMessage(mt, message)
+
+		_, err = a.DB.Exec("update robot_state set seen_at=now() where id = $1", rid)
 		if err != nil {
-			log.Println("write:", err)
-			break
+			a.Log.WithError(err).WithField("rid", rid).Warnln("Could not update seen_at")
 		}
+
+		// log.Printf("recv: %s", message)
+		// err = c.WriteMessage(mt, message)
+		// if err != nil {
+		// 	log.Println("write:", err)
+		// 	break
+		// }
 	}
 }
 
