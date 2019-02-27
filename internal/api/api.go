@@ -62,6 +62,7 @@ func NewAPI(
 	router := gin.Default()
 
 	corsConf := cors.DefaultConfig()
+	corsConf.AddAllowMethods("DELETE", "PATCH")
 	corsConf.AddAllowHeaders("Authorization")
 	corsConf.AllowAllOrigins = true
 
