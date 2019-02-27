@@ -11,7 +11,7 @@ import (
 )
 
 // RobotCheck is a middleware to check whether the passed robot uuid exists,
-// and confirms whether the currently logged in user owns that robot
+// and (if logged in) confirms whether the currently logged in user owns that robot
 func (a *API) RobotCheck(c *gin.Context) {
 	id := c.Param("uuid")
 	rid, err := uuid.Parse(id)
@@ -29,7 +29,8 @@ func (a *API) RobotCheck(c *gin.Context) {
 		return
 	}
 
-	if uid := robot.UserID; uid == nil || *uid != c.GetInt("user_id") {
+	_, loggedIn := c.Get("user_id")
+	if uid := robot.UserID; loggedIn && (uid == nil || *uid != c.GetInt("user_id")) {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"status":  "error",
 			"message": "you don't own that robot",
@@ -40,6 +41,14 @@ func (a *API) RobotCheck(c *gin.Context) {
 
 	// Store the robot in the context
 	c.Set("robot", &robot)
+}
+
+// RobotVideoGet streams the video
+func (a *API) RobotVideoGet(c *gin.Context) {
+	robot := c.MustGet("robot").(*models.Robot)
+
+	stream := GetStream(robot.ID)
+	stream.ServeHTTP(c.Writer, c.Request)
 }
 
 // RobotListGet requires you to be logged in.

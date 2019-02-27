@@ -1,9 +1,11 @@
 package api
 
 import (
+	"encoding/base64"
 	"log"
-	"net/http"
 	"sync"
+
+	"github.com/mattn/go-mjpeg"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -20,26 +22,24 @@ var upgrader = websocket.Upgrader{
 var robotCtxs = make(map[uuid.UUID]*gin.Context)
 var robotCtxsMutex = &sync.Mutex{}
 
+var robotStreams = make(map[uuid.UUID]*mjpeg.Stream)
+var robotStreamsMutex = &sync.Mutex{}
+
+func GetStream(rid uuid.UUID) *mjpeg.Stream {
+	robotStreamsMutex.Lock()
+	stream, ok := robotStreams[rid]
+	if !ok {
+		stream = mjpeg.NewStream()
+		robotStreams[rid] = stream
+	}
+	robotStreamsMutex.Unlock()
+	return stream
+}
+
 func (i *API) StreamRobot(ctx *gin.Context) {
 	w, r := ctx.Writer, ctx.Request
 
-	var rid uuid.UUID
-	var err error
-	if rid, err = uuid.Parse(ctx.Param("uuid")); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": err.Error(),
-		})
-		return
-	}
-
-	var robot models.Robot
-
-	if err := i.DB.Get(&robot, "select * from robots where id = $1", rid); err != nil {
-		ctx.JSON(http.StatusForbidden, gin.H{
-			"message": "invalid uuid: " + err.Error(),
-		})
-		return
-	}
+	rid := ctx.MustGet("robot").(*models.Robot).ID
 
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -90,5 +90,39 @@ func (i *API) StreamRobot(ctx *gin.Context) {
 			log.Println("write:", err)
 			break
 		}
+	}
+}
+
+func (a *API) StreamRobotVideo(ctx *gin.Context) {
+	w, r := ctx.Writer, ctx.Request
+
+	rid := ctx.MustGet("robot").(*models.Robot).ID
+
+	c, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Print("upgrade:", err)
+		return
+	}
+
+	stream := GetStream(rid)
+
+	for {
+		_, message, err := c.ReadMessage()
+		if err != nil {
+			log.Println("read:", err)
+			break
+		}
+
+		image, err := base64.StdEncoding.DecodeString(string(message))
+		if err != nil {
+			a.Log.WithField("rid", rid).WithError(err).Warnln("Could not decode base64 image sent")
+		}
+
+		if err := stream.Update(image); err != nil {
+			a.Log.WithField("rid", rid).WithError(err).Warnln("Could not update stream")
+			return
+		}
+
+		a.Log.WithField("rid", rid).Infoln("Image added to stream")
 	}
 }

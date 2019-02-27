@@ -113,13 +113,15 @@ func NewAPI(
 	authRequired := authMiddleware.MiddlewareFunc()
 
 	// Stream
-	stream := router.Group("/stream")
 	{
 		// General websocket
-		stream.GET("", authRequired, a.NotImplemented)
+		router.GET("/stream", authRequired, a.NotImplemented)
 
 		// Robots can connect to the stream without authentication
-		stream.GET("/:uuid", a.StreamRobot)
+		router.GET("/stream/:uuid", a.RobotCheck, a.StreamRobot)
+
+		// Robots can stream videos without authentication
+		router.GET("/stream-video/:uuid", a.RobotCheck, a.StreamRobotVideo)
 	}
 
 	// Authentication
@@ -142,8 +144,9 @@ func NewAPI(
 	// A robot
 	aRobot := router.Group("/robot/:uuid", authRequired, a.RobotCheck)
 	{
-		aRobot.GET("", a.RobotStatusGet) // Get (status) info
-		aRobot.DELETE("", a.RobotDelete) // Delete this bot
+		aRobot.GET("", a.RobotStatusGet)      // Get (status) info
+		aRobot.GET("/video", a.RobotVideoGet) // Get video
+		aRobot.DELETE("", a.RobotDelete)      // Delete this bot
 		aRobot.POST("/move", a.RobotMovePost)
 		aRobot.POST("/startDemo", a.RobotStartDemoPost)
 		aRobot.PATCH("/settings", a.RobotSettingsPatch)
