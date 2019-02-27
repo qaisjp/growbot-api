@@ -61,23 +61,25 @@ func (a *API) GetStream(rid uuid.UUID) *Stream {
 			Inner: mjpeg.NewStream(),
 		}
 		robotStreams[rid] = stream
-	}
-	robotStreamsMutex.Unlock()
 
-	go func(stream *Stream) {
-		tick := time.NewTicker(VideoDeathFrequency)
+		go func(stream *Stream) {
+			tick := time.NewTicker(VideoDeathFrequency)
 
-		for {
-			select {
-			case <-tick.C:
-				if time.Now().Sub(stream.LastUpdate) > VideoDeathThreshold {
-					if err := stream.Inner.Update(deadBytes); err != nil {
-						a.Log.WithError(err).WithField("uuid", rid).Warnln("Could not add dead image")
+			for {
+				select {
+				case <-tick.C:
+					if time.Now().Sub(stream.LastUpdate) > VideoDeathThreshold {
+						a.Log.WithField("uuid", rid).Infoln("Pushed dead image")
+						if err := stream.Inner.Update(deadBytes); err != nil {
+							a.Log.WithError(err).WithField("uuid", rid).Warnln("Could not add dead image")
+						}
 					}
 				}
 			}
-		}
-	}(stream)
+		}(stream)
+	}
+
+	robotStreamsMutex.Unlock()
 
 	return stream
 }
