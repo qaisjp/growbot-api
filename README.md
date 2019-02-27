@@ -56,6 +56,15 @@ The web server for GrowBot Web.
 - Run `make reset_schema` to create a database, give our `growbot` user admin permissions on `db growbot_dev`, and set the database schema
 - **If you make updates to the database structure**: run `make schema.sql` to dump the _database schema_. It is **not** a full data dump with all rows.
 
+## Live reload
+
+1. Install [Gin](https://github.com/codegangsta/gin) (same name, different project).
+2. Use the following command, run from the project root. Note that `9999` can be any random port as we don't want to use the reverse proxy.
+
+    ```
+    config=config.yml gin --notifications -i --path="." -d "cmd/growbot-api" --appPort 8080 --port 9999 --bin "cmd/growbot-api/growbot-api" run main.go
+    ```
+
 ## Running
 
 Command line documentation is available by supplying the `--help` argument. As of 737fa69e9799f8886103180ed318395b8a863c96 the following text is printed:
