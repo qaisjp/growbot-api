@@ -47,8 +47,8 @@ func (a *API) RobotCheck(c *gin.Context) {
 func (a *API) RobotVideoGet(c *gin.Context) {
 	robot := c.MustGet("robot").(*models.Robot)
 
-	stream := GetStream(robot.ID)
-	stream.ServeHTTP(c.Writer, c.Request)
+	stream := a.GetStream(robot.ID)
+	stream.Inner.ServeHTTP(c.Writer, c.Request)
 }
 
 // RobotListGet requires you to be logged in.

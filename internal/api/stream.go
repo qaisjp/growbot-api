@@ -2,8 +2,10 @@ package api
 
 import (
 	"encoding/base64"
+	"io/ioutil"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/mattn/go-mjpeg"
 
@@ -22,17 +24,61 @@ var upgrader = websocket.Upgrader{
 var robotCtxs = make(map[uuid.UUID]*gin.Context)
 var robotCtxsMutex = &sync.Mutex{}
 
-var robotStreams = make(map[uuid.UUID]*mjpeg.Stream)
+var robotStreams = make(map[uuid.UUID]*Stream)
 var robotStreamsMutex = &sync.Mutex{}
 
-func GetStream(rid uuid.UUID) *mjpeg.Stream {
+type Stream struct {
+	Inner      *mjpeg.Stream
+	LastUpdate time.Time
+}
+
+func (s *Stream) Update(b []byte) error {
+	s.LastUpdate = time.Now()
+	return s.Inner.Update(b)
+}
+
+var deadBytes []byte
+
+func init() {
+	var err error
+	deadBytes, err = ioutil.ReadFile("dead.jpeg")
+	if err != nil {
+		panic(err)
+	}
+}
+
+// VideoDeathThreshold is the duration we wait before we show the "dead" image
+const VideoDeathThreshold = time.Second * 2
+
+// VideoDeathFrequency is the frequency of which we send the "dead"
+const VideoDeathFrequency = time.Second
+
+func (a *API) GetStream(rid uuid.UUID) *Stream {
 	robotStreamsMutex.Lock()
 	stream, ok := robotStreams[rid]
 	if !ok {
-		stream = mjpeg.NewStream()
+		stream = &Stream{
+			Inner: mjpeg.NewStream(),
+		}
 		robotStreams[rid] = stream
 	}
 	robotStreamsMutex.Unlock()
+
+	go func(stream *Stream) {
+		tick := time.NewTicker(VideoDeathFrequency)
+
+		for {
+			select {
+			case <-tick.C:
+				if time.Now().Sub(stream.LastUpdate) > VideoDeathThreshold {
+					if err := stream.Inner.Update(deadBytes); err != nil {
+						a.Log.WithError(err).WithField("uuid", rid).Warnln("Could not add dead image")
+					}
+				}
+			}
+		}
+	}(stream)
+
 	return stream
 }
 
@@ -104,7 +150,7 @@ func (a *API) StreamRobotVideo(ctx *gin.Context) {
 		return
 	}
 
-	stream := GetStream(rid)
+	stream := a.GetStream(rid)
 
 	for {
 		_, message, err := c.ReadMessage()
@@ -116,11 +162,12 @@ func (a *API) StreamRobotVideo(ctx *gin.Context) {
 		image, err := base64.StdEncoding.DecodeString(string(message))
 		if err != nil {
 			a.Log.WithField("rid", rid).WithError(err).Warnln("Could not decode base64 image sent")
+			continue
 		}
 
 		if err := stream.Update(image); err != nil {
 			a.Log.WithField("rid", rid).WithError(err).Warnln("Could not update stream")
-			return
+			continue
 		}
 
 		a.Log.WithField("rid", rid).Infoln("Image added to stream")
