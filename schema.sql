@@ -53,7 +53,7 @@ CREATE TABLE public.event_actions (
     id integer NOT NULL,
     name public.event_action_name NOT NULL,
     data jsonb NOT NULL,
-    plant_id text NOT NULL,
+    plant_id uuid NOT NULL,
     event_id integer NOT NULL
 );
 
@@ -127,7 +127,7 @@ CREATE TABLE public.plant_photos (
     id uuid NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     filename text NOT NULL,
-    plant_id text NOT NULL
+    plant_id uuid NOT NULL
 );
 
 
@@ -138,7 +138,7 @@ ALTER TABLE public.plant_photos OWNER TO growbot;
 --
 
 CREATE TABLE public.plants (
-    id text NOT NULL,
+    id uuid NOT NULL,
     user_id integer NOT NULL,
     name text NOT NULL
 );
@@ -151,7 +151,7 @@ ALTER TABLE public.plants OWNER TO growbot;
 --
 
 CREATE TABLE public.robot_state (
-    id text NOT NULL,
+    id uuid NOT NULL,
     battery_level integer DEFAULT 0 NOT NULL,
     water_level integer DEFAULT 0 NOT NULL,
     distress boolean DEFAULT false NOT NULL,
@@ -175,7 +175,7 @@ This is so that the interactive interfaces can report "Not seen yet" instead of 
 --
 
 CREATE TABLE public.robots (
-    id text NOT NULL,
+    id uuid NOT NULL,
     admin_token text NOT NULL,
     user_id integer,
     title text DEFAULT ''::text NOT NULL,
