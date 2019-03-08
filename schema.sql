@@ -34,6 +34,43 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: events; Type: TABLE; Schema: public; Owner: growbot
+--
+
+CREATE TABLE public.events (
+    id integer NOT NULL,
+    summary text NOT NULL,
+    start timestamp without time zone NOT NULL,
+    recurrence text[] DEFAULT ARRAY[]::text[] NOT NULL,
+    user_id integer NOT NULL
+);
+
+
+ALTER TABLE public.events OWNER TO growbot;
+
+--
+-- Name: events_id_seq; Type: SEQUENCE; Schema: public; Owner: growbot
+--
+
+CREATE SEQUENCE public.events_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.events_id_seq OWNER TO growbot;
+
+--
+-- Name: events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: growbot
+--
+
+ALTER SEQUENCE public.events_id_seq OWNED BY public.events.id;
+
+
+--
 -- Name: plants; Type: TABLE; Schema: public; Owner: growbot
 --
 
@@ -127,10 +164,25 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
+-- Name: events id; Type: DEFAULT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.events ALTER COLUMN id SET DEFAULT nextval('public.events_id_seq'::regclass);
+
+
+--
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: growbot
 --
 
 ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- Name: events events_id_key; Type: CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.events
+    ADD CONSTRAINT events_id_key PRIMARY KEY (id);
 
 
 --
@@ -186,6 +238,14 @@ ALTER TABLE ONLY public.users
 --
 
 CREATE TRIGGER trig_create_state AFTER INSERT ON public.robots FOR EACH ROW EXECUTE PROCEDURE public.growbot_create_state();
+
+
+--
+-- Name: events events_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.events
+    ADD CONSTRAINT events_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
