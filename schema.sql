@@ -120,6 +120,20 @@ ALTER SEQUENCE public.events_id_seq OWNED BY public.events.id;
 
 
 --
+-- Name: plant_photos; Type: TABLE; Schema: public; Owner: growbot
+--
+
+CREATE TABLE public.plant_photos (
+    id uuid NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    filename text NOT NULL,
+    plant_id text NOT NULL
+);
+
+
+ALTER TABLE public.plant_photos OWNER TO growbot;
+
+--
 -- Name: plants; Type: TABLE; Schema: public; Owner: growbot
 --
 
@@ -250,6 +264,14 @@ ALTER TABLE ONLY public.events
 
 
 --
+-- Name: plant_photos plant_photos_id_key; Type: CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.plant_photos
+    ADD CONSTRAINT plant_photos_id_key PRIMARY KEY (id);
+
+
+--
 -- Name: plants plants_id_pkey; Type: CONSTRAINT; Schema: public; Owner: growbot
 --
 
@@ -326,6 +348,14 @@ ALTER TABLE ONLY public.event_actions
 
 ALTER TABLE ONLY public.events
     ADD CONSTRAINT events_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: plant_photos plant_photos_plant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.plant_photos
+    ADD CONSTRAINT plant_photos_plant_id_fkey FOREIGN KEY (plant_id) REFERENCES public.plants(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
