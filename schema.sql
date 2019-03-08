@@ -124,9 +124,9 @@ ALTER SEQUENCE public.events_id_seq OWNED BY public.events.id;
 --
 
 CREATE TABLE public.plant_photos (
-    id uuid NOT NULL,
+    id integer NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
-    filename text NOT NULL,
+    filename uuid NOT NULL,
     plant_id uuid NOT NULL
 );
 
