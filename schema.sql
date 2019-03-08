@@ -34,6 +34,19 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: plants; Type: TABLE; Schema: public; Owner: growbot
+--
+
+CREATE TABLE public.plants (
+    id text NOT NULL,
+    user_id integer NOT NULL,
+    name text NOT NULL
+);
+
+
+ALTER TABLE public.plants OWNER TO growbot;
+
+--
 -- Name: robot_state; Type: TABLE; Schema: public; Owner: growbot
 --
 
@@ -121,6 +134,22 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
+-- Name: plants plants_id_pkey; Type: CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.plants
+    ADD CONSTRAINT plants_id_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: plants plants_name_user_id_key; Type: CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.plants
+    ADD CONSTRAINT plants_name_user_id_key UNIQUE (user_id, name);
+
+
+--
 -- Name: robot_state robot_state_id_pkey; Type: CONSTRAINT; Schema: public; Owner: growbot
 --
 
@@ -157,6 +186,14 @@ ALTER TABLE ONLY public.users
 --
 
 CREATE TRIGGER trig_create_state AFTER INSERT ON public.robots FOR EACH ROW EXECUTE PROCEDURE public.growbot_create_state();
+
+
+--
+-- Name: plants plants_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.plants
+    ADD CONSTRAINT plants_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
