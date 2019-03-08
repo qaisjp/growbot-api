@@ -3,6 +3,10 @@ PSQL_USER=growbot
 .PHONY: schema
 
 reset_schema::
+	# kick clients off the database
+	psql postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'growbot_dev';"
+
+	# reset schema
 	dropdb growbot_dev --if-exists
 	createdb growbot_dev
 	psql growbot_dev -c 'grant all privileges on database growbot_dev to growbot;'
