@@ -16,6 +16,18 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- Name: event_action_name; Type: TYPE; Schema: public; Owner: growbot
+--
+
+CREATE TYPE public.event_action_name AS ENUM (
+    'PLANT_WATER',
+    'PLANT_CAPTURE_PHOTO'
+);
+
+
+ALTER TYPE public.event_action_name OWNER TO growbot;
+
+--
 -- Name: growbot_create_state(); Type: FUNCTION; Schema: public; Owner: growbot
 --
 
@@ -32,6 +44,43 @@ ALTER FUNCTION public.growbot_create_state() OWNER TO growbot;
 SET default_tablespace = '';
 
 SET default_with_oids = false;
+
+--
+-- Name: event_actions; Type: TABLE; Schema: public; Owner: growbot
+--
+
+CREATE TABLE public.event_actions (
+    id integer NOT NULL,
+    name public.event_action_name NOT NULL,
+    data jsonb NOT NULL,
+    plant_id text NOT NULL,
+    event_id integer NOT NULL
+);
+
+
+ALTER TABLE public.event_actions OWNER TO growbot;
+
+--
+-- Name: event_actions_id_seq; Type: SEQUENCE; Schema: public; Owner: growbot
+--
+
+CREATE SEQUENCE public.event_actions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.event_actions_id_seq OWNER TO growbot;
+
+--
+-- Name: event_actions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: growbot
+--
+
+ALTER SEQUENCE public.event_actions_id_seq OWNED BY public.event_actions.id;
+
 
 --
 -- Name: events; Type: TABLE; Schema: public; Owner: growbot
@@ -164,6 +213,13 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
+-- Name: event_actions id; Type: DEFAULT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.event_actions ALTER COLUMN id SET DEFAULT nextval('public.event_actions_id_seq'::regclass);
+
+
+--
 -- Name: events id; Type: DEFAULT; Schema: public; Owner: growbot
 --
 
@@ -175,6 +231,14 @@ ALTER TABLE ONLY public.events ALTER COLUMN id SET DEFAULT nextval('public.event
 --
 
 ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- Name: event_actions event_actions_id_key; Type: CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.event_actions
+    ADD CONSTRAINT event_actions_id_key PRIMARY KEY (id);
 
 
 --
@@ -238,6 +302,22 @@ ALTER TABLE ONLY public.users
 --
 
 CREATE TRIGGER trig_create_state AFTER INSERT ON public.robots FOR EACH ROW EXECUTE PROCEDURE public.growbot_create_state();
+
+
+--
+-- Name: event_actions event_actions_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.event_actions
+    ADD CONSTRAINT event_actions_event_id_fkey FOREIGN KEY (event_id) REFERENCES public.events(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: event_actions event_actions_plant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.event_actions
+    ADD CONSTRAINT event_actions_plant_id_fkey FOREIGN KEY (plant_id) REFERENCES public.plants(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
