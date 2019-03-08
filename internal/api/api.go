@@ -153,5 +153,17 @@ func NewAPI(
 		aRobot.PATCH("/settings", a.RobotSettingsPatch)
 	}
 
+	// Plants
+	plants := router.Group("/plants", authRequired)
+	{
+		plants.GET("", a.PlantListGet)
+	}
+
+	// Photos
+	photos := router.Group("/photos", authRequired)
+	{
+		photos.GET("", a.PhotosListGet)
+	}
+
 	return a
 }
