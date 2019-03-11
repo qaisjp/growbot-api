@@ -2,6 +2,9 @@ PSQL_USER=growbot
 
 .PHONY: schema
 
+default::
+	@echo "targets: reset_schema,schema.sql,checkpoint,restore_checkpoint,quicksave,quickload"
+
 reset_schema::
 	# kick clients off the database
 	psql postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'growbot_dev';"
