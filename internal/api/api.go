@@ -180,12 +180,12 @@ func NewAPI(
 	plants := router.Group("/plants", authRequired)
 	{
 		plants.GET("", a.PlantListGet)
-		plants.POST("", a.NotImplemented) // create a plant, only {name: ""}
+		plants.POST("", a.PlantCreatePost) // create a plant, only {name: ""}
 
 		plant := plants.Group("/:uuid", a.PlantCheck)
 		{
-			plant.PATCH("", a.NotImplemented)
-			plant.GET("/photos", a.NotImplemented)
+			plant.GET("/photos", a.PlantGet)
+			plant.PATCH("", a.PlantRenamePatch)
 		}
 	}
 
