@@ -25,7 +25,7 @@ func (a *API) PhotoCheck(c *gin.Context) {
 
 	photo := struct {
 		models.PlantPhoto
-		UserID int `db:"photo_id"`
+		UserID int `db:"user_id"`
 	}{}
 	err = a.DB.Get(&photo, "select ph.*, pl.user_id as user_id from plant_photos as ph, plants as pl where ph.id = $1 and ph.plant_id = pl.id", id)
 	if err != nil {
