@@ -129,6 +129,21 @@ func (a *API) PhotoDelete(c *gin.Context) {
 		return
 	}
 
+	key := photoBucketKey(photo.Filename)
+	exists, err := a.Bucket.Exists(c, key)
+	if err != nil {
+		a.error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if exists {
+		err = a.Bucket.Delete(c, key)
+		if err != nil {
+			a.error(c, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status": "success",
 	})
