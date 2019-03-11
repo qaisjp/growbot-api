@@ -34,7 +34,7 @@ ALTER TYPE public.event_action_name OWNER TO growbot;
 CREATE FUNCTION public.growbot_create_state() RETURNS trigger
     LANGUAGE plpgsql
     AS $$begin
-	insert into robot_state(id) values (new.id);
+	insert into public.robot_state(id) values (new.id);
 	return new;
 end;$$;
 
