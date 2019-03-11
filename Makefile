@@ -36,4 +36,4 @@ quicksave::
 
 quickload::
 	$(MAKE) reset_schema
-	psql growbot_dev -f  $$(find dev_saves | grep \.sql | sort | tail -n 1)
+	psql growbot_dev -f $$(find dev_saves | grep \.sql | sort | tail -n 1)
