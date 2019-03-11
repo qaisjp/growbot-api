@@ -5,6 +5,7 @@ config.yml
 /cmd/growbot-video-test/growbot-video-test
 dev_backup
 dev_saves
+staticphotos/
 
 # Created by https://www.gitignore.io/api/macos,intellij+all
 # Edit at https://www.gitignore.io/?templates=macos,intellij+all
