@@ -153,16 +153,43 @@ func NewAPI(
 		aRobot.PATCH("/settings", a.RobotSettingsPatch)
 	}
 
-	// Plants
-	plants := router.Group("/plants", authRequired)
-	{
-		plants.GET("", a.PlantListGet)
-	}
-
 	// Photos
 	photos := router.Group("/photos", authRequired)
 	{
 		photos.GET("", a.PhotosListGet)
+
+		photo := photos.Group("/:id", a.PhotoCheck)
+		{
+			photo.GET("", a.NotImplemented)
+			photo.DELETE("", a.NotImplemented)
+		}
+	}
+
+	// Plants
+	plants := router.Group("/plants", authRequired)
+	{
+		plants.GET("", a.PlantListGet)
+		plants.POST("", a.NotImplemented) // create a plant, only {name: ""}
+
+		plant := plants.Group("/:uuid", a.PlantCheck)
+		{
+			plant.PATCH("", a.NotImplemented)
+			plant.GET("/photos", a.NotImplemented)
+		}
+	}
+
+	// Events
+	events := router.Group("/events", authRequired)
+	{
+		events.GET("", a.NotImplemented)
+		events.POST("", a.NotImplemented)
+
+		event := events.Group("/:id", a.EventCheck)
+		{
+			event.GET("", a.NotImplemented)
+			event.PUT("", a.NotImplemented)
+			event.DELETE("", a.NotImplemented)
+		}
 	}
 
 	return a
