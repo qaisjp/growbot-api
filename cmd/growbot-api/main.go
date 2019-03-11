@@ -58,7 +58,7 @@ func main() {
 	// Create a plant-photos directory.
 	const photoDir = "staticphotos"
 	err = os.Mkdir(photoDir, 0755)
-	if err != nil {
+	if err != nil && !os.IsExist(err) {
 		logger.WithError(err).Fatalln("Could not create plant photos directory")
 		return
 	}

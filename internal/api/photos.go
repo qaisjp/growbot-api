@@ -1,6 +1,8 @@
 package api
 
 import (
+	"io"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -76,5 +78,52 @@ func (a *API) PhotosListGet(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"photos": photos,
+	})
+}
+
+// PhotoServeGet serves the associated photo
+func (a *API) PhotoServeGet(c *gin.Context) {
+	photo := c.MustGet("photo").(*models.PlantPhoto)
+
+	key := "plantphotos." + photo.Filename.String()
+
+	exists, err := a.Bucket.Exists(c, key)
+	if err != nil {
+		a.error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if !exists {
+		a.error(c, http.StatusInternalServerError, "This photo is in our database, but could not be found.")
+		return
+	}
+
+	r, err := a.Bucket.NewReader(c, key, nil)
+	if err != nil {
+		a.error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer r.Close()
+
+	c.Header("Content-Type", "image/jpeg")
+	c.Header("Content-Length", strconv.FormatInt(r.Size(), 10))
+
+	if _, err := io.Copy(c.Writer, r); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// PhotoDelete deletes the associated photo
+func (a *API) PhotoDelete(c *gin.Context) {
+	photo := c.MustGet("photo").(*models.PlantPhoto)
+
+	_, err := a.DB.Exec("delete from plant_photos where id=$1", photo.ID)
+	if err != nil {
+		a.error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
 	})
 }

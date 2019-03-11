@@ -43,6 +43,13 @@ func (a *API) Shutdown(ctx context.Context) error {
 	return nil
 }
 
+func (a *API) error(c *gin.Context, code int, msg string) {
+	c.JSON(code, gin.H{
+		"status":  "error",
+		"message": msg,
+	})
+}
+
 func BadRequest(c *gin.Context, msg string) {
 	c.JSON(http.StatusBadRequest, gin.H{
 		"status":  "error",
@@ -164,8 +171,8 @@ func NewAPI(
 
 		photo := photos.Group("/:id", a.PhotoCheck)
 		{
-			photo.GET("", a.NotImplemented)
-			photo.DELETE("", a.NotImplemented)
+			photo.GET("", a.PhotoServeGet)
+			photo.DELETE("", a.PhotoDelete)
 		}
 	}
 
