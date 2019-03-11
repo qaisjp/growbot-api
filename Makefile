@@ -28,3 +28,8 @@ restore_checkpoint::
 	createdb growbot_dev
 	psql growbot_dev -c 'grant all privileges on database growbot_dev to growbot;'
 	pg_restore -U ${PSQL_USER} -d growbot_dev $$(find dev_backup | grep \.dump | sort | tail -n 1)
+
+# save the database entries
+save::
+	mkdir -p dev_saves
+	pg_dump -F p -v -U ${PSQL_USER} -d growbot_dev -f dev_saves/$$(date +%F_%H-%M-%S).dump
