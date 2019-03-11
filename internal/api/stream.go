@@ -1,7 +1,10 @@
 package api
 
 import (
+	"bytes"
 	"encoding/base64"
+	"encoding/json"
+	"io"
 	"io/ioutil"
 	"log"
 	"sync"
@@ -133,7 +136,7 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 	}()
 
 	for {
-		_, _, err := c.ReadMessage()
+		_, b, err := c.ReadMessage()
 		if err != nil {
 			log.Println("read:", err)
 			break
@@ -144,12 +147,58 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 			a.Log.WithError(err).WithField("rid", rid).Warnln("Could not update seen_at")
 		}
 
+		msg := struct {
+			Type string
+			Data map[string]interface{}
+		}{}
+
+		err = json.Unmarshal(b, &msg)
+		if err != nil {
+			a.Log.WithError(err).Warnln("Could not read websocket message")
+			continue
+		}
+
+		switch msg.Type {
+		case "PLANT_CAPTURE_PHOTO":
+			plantID := msg.Data["id"].(string)
+			plantImageB64 := msg.Data["image"].(string)
+
+			// todo: verify user owns plantID
+
+			u := uuid.New()
+			filename := photoBucketKey(u)
+			photo := models.PlantPhoto{
+				Filename: u,
+				PlantID:  uuid.Must(uuid.Parse(plantID)),
+			}
+
+			w, err := a.Bucket.NewWriter(ctx, filename, nil)
+			if err != nil {
+				a.Log.WithError(err).Warnln("could not create bucket for PLANT_CAPTURE_PHOTO")
+				continue
+			}
+
+			rb := base64.NewDecoder(base64.StdEncoding, bytes.NewReader([]byte(plantImageB64)))
+
+			_, err = io.Copy(w, rb)
+			if err != nil {
+				a.Log.WithError(err).Warnln("could not decode base64 image into bucket")
+				continue
+			}
+
+			_, err = a.DB.NamedQuery("insert into plant_photos(filename, plant_id) values (:filename, :plant_id)", photo)
+			if err != nil {
+				_ = a.Bucket.Delete(ctx, filename)
+				a.Log.WithError(err).WithField("plant_id", plantID).Warnln("could not insert file for PLANT_CAPTURE_PHOTO")
+				continue
+			}
+
+		default:
+			a.Log.WithField("Type", msg.Type).Warnln("Received message with unk type from robot stream")
+		}
+
 		// log.Printf("recv: %s", message)
 		// err = c.WriteMessage(mt, message)
-		// if err != nil {
-		// 	log.Println("write:", err)
-		// 	break
-		// }
 	}
 }
 

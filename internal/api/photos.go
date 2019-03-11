@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/google/uuid"
+
 	"github.com/gin-gonic/gin"
 	"github.com/teamxiv/growbot-api/internal/models"
 )
@@ -81,11 +83,15 @@ func (a *API) PhotosListGet(c *gin.Context) {
 	})
 }
 
+func photoBucketKey(id uuid.UUID) string {
+	return "plantphotos." + id.String()
+}
+
 // PhotoServeGet serves the associated photo
 func (a *API) PhotoServeGet(c *gin.Context) {
 	photo := c.MustGet("photo").(*models.PlantPhoto)
 
-	key := "plantphotos." + photo.Filename.String()
+	key := photoBucketKey(photo.Filename)
 
 	exists, err := a.Bucket.Exists(c, key)
 	if err != nil {
