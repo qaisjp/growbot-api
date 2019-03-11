@@ -41,3 +41,53 @@ func (a *API) EventCheck(c *gin.Context) {
 	// Store the event in the context
 	c.Set("event", &event)
 }
+
+// EventListGet gets the plant object
+func (a *API) EventListGet(c *gin.Context) {
+	userID := c.GetInt("user_id")
+
+	events := []models.Event{}
+
+	err := a.DB.Select(&events, "select * from events where user_id=$1", userID)
+
+	if err != nil {
+		a.error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"events": events,
+	})
+}
+
+// EventCreatePost gets the plant object
+func (a *API) EventCreatePost(c *gin.Context) {
+	c.JSON(http.StatusNotImplemented, gin.H{"message": "not implemented (yet)"})
+}
+
+// EventGet gets the Event object
+func (a *API) EventGet(c *gin.Context) {
+	event := c.MustGet("event").(*models.Event)
+
+	c.JSON(http.StatusOK, event)
+}
+
+// EventPut updates the event object
+func (a *API) EventPut(c *gin.Context) {
+	c.JSON(http.StatusNotImplemented, gin.H{"message": "not implemented (yet)"})
+}
+
+// EventDelete gets the plant object
+func (a *API) EventDelete(c *gin.Context) {
+	event := c.MustGet("event").(*models.Event)
+
+	_, err := a.DB.Exec("delete from events where id=$1", event.ID)
+	if err != nil {
+		a.error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+	})
+}

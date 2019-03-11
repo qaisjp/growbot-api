@@ -184,7 +184,7 @@ func NewAPI(
 
 		plant := plants.Group("/:uuid", a.PlantCheck)
 		{
-			plant.GET("/photos", a.PlantGet)
+			plant.GET("", a.PlantGet)
 			plant.PATCH("", a.PlantRenamePatch)
 		}
 	}
@@ -192,14 +192,14 @@ func NewAPI(
 	// Events
 	events := router.Group("/events", authRequired)
 	{
-		events.GET("", a.NotImplemented)
-		events.POST("", a.NotImplemented)
+		events.GET("", a.EventListGet)
+		events.POST("", a.EventCreatePost)
 
 		event := events.Group("/:id", a.EventCheck)
 		{
-			event.GET("", a.NotImplemented)
-			event.PUT("", a.NotImplemented)
-			event.DELETE("", a.NotImplemented)
+			event.GET("", a.EventGet)
+			event.PUT("", a.EventPut)
+			event.DELETE("", a.EventDelete)
 		}
 	}
 
