@@ -89,7 +89,6 @@ ALTER SEQUENCE public.event_actions_id_seq OWNED BY public.event_actions.id;
 CREATE TABLE public.events (
     id integer NOT NULL,
     summary text NOT NULL,
-    start timestamp without time zone NOT NULL,
     recurrence text[] DEFAULT ARRAY[]::text[] NOT NULL,
     user_id integer NOT NULL
 );
