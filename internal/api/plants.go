@@ -45,11 +45,11 @@ func (a *API) PlantCheck(c *gin.Context) {
 // PlantListGet requires you to be logged in.
 // It lists all plants the user owns
 func (a *API) PlantListGet(c *gin.Context) {
-	user_id := c.GetInt("user_id")
+	userID := c.GetInt("user_id")
 
 	plants := []models.Plant{}
 
-	err := a.DB.Select(&plants, "select * from plants where user_id=$1", user_id)
+	err := a.DB.Select(&plants, "select * from plants where user_id=$1", userID)
 	if err != nil {
 		BadRequest(c, err.Error())
 		return
@@ -96,7 +96,13 @@ func (a *API) PlantCreatePost(c *gin.Context) {
 		}
 	}
 
-	_, err = a.DB.NamedQuery("insert into plants(id, name) values (:id, :name)", input)
+	row := models.Plant{
+		ID:     input.ID,
+		Name:   input.Name,
+		UserID: c.GetInt("user_id"),
+	}
+
+	_, err = a.DB.NamedQuery("insert into plants(id, name, user_id) values (:id, :name, :user_id)", row)
 	if err != nil {
 		a.error(c, http.StatusInternalServerError, err.Error())
 		return
