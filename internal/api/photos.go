@@ -68,9 +68,9 @@ func (a *API) PhotosListGet(c *gin.Context) {
 
 	var err error
 	if plantIDstr == "" {
-		err = a.DB.Select(&photos, "select ph.* from plants as pl, plant_photos as ph where pl.user_id=$1 and ph.plant_id=pl.plant_id", userID)
+		err = a.DB.Select(&photos, "select ph.* from plants as pl, plant_photos as ph where pl.user_id=$1 and ph.plant_id=pl.id", userID)
 	} else {
-		err = a.DB.Select(&photos, "select ph.* from plants as pl, plant_photos as ph where pl.user_id=$1 and ph.plant_id=pl.plant_id and pl.plant_id=$2", userID, plantID)
+		err = a.DB.Select(&photos, "select ph.* from plants as pl, plant_photos as ph where pl.user_id=$1 and ph.plant_id=pl.id and pl.id=$2", userID, plantID)
 	}
 
 	if err != nil {
