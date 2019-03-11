@@ -134,6 +134,28 @@ CREATE TABLE public.plant_photos (
 ALTER TABLE public.plant_photos OWNER TO growbot;
 
 --
+-- Name: plant_photos_id_seq; Type: SEQUENCE; Schema: public; Owner: growbot
+--
+
+CREATE SEQUENCE public.plant_photos_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.plant_photos_id_seq OWNER TO growbot;
+
+--
+-- Name: plant_photos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: growbot
+--
+
+ALTER SEQUENCE public.plant_photos_id_seq OWNED BY public.plant_photos.id;
+
+
+--
 -- Name: plants; Type: TABLE; Schema: public; Owner: growbot
 --
 
@@ -238,6 +260,13 @@ ALTER TABLE ONLY public.event_actions ALTER COLUMN id SET DEFAULT nextval('publi
 --
 
 ALTER TABLE ONLY public.events ALTER COLUMN id SET DEFAULT nextval('public.events_id_seq'::regclass);
+
+
+--
+-- Name: plant_photos id; Type: DEFAULT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.plant_photos ALTER COLUMN id SET DEFAULT nextval('public.plant_photos_id_seq'::regclass);
 
 
 --
