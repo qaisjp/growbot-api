@@ -32,4 +32,4 @@ restore_checkpoint::
 # save the database entries
 save::
 	mkdir -p dev_saves
-	pg_dump -F p -v -U ${PSQL_USER} -d growbot_dev -f dev_saves/$$(date +%F_%H-%M-%S).dump
+	pg_dump -F p -v -U ${PSQL_USER} -d growbot_dev -f dev_saves/$$(date +%F_%H-%M-%S).sql
