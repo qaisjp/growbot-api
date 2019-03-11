@@ -186,6 +186,11 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 				continue
 			}
 
+			err = w.Close()
+			if err != nil {
+				a.Log.WithError(err).Warnln("could not close bucket writer")
+			}
+
 			_, err = a.DB.NamedQuery("insert into plant_photos(filename, plant_id) values (:filename, :plant_id)", photo)
 			if err != nil {
 				_ = a.Bucket.Delete(ctx, filename)
