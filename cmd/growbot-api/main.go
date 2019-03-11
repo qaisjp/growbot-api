@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,6 +13,7 @@ import (
 	"github.com/teamxiv/growbot-api/internal/api"
 	"github.com/teamxiv/growbot-api/internal/config"
 	"github.com/teamxiv/growbot-api/internal/database"
+	"gocloud.dev/blob/fileblob"
 
 	"github.com/koding/multiconfig"
 )
@@ -53,10 +55,25 @@ func main() {
 		"cstr":   cfg.Database.ConnectionString,
 	}).Info("Connected to a Postgres server")
 
+	// Create a plant-photos directory.
+	const photoDir = "staticphotos"
+	err = os.Mkdir(photoDir, 0755)
+	if err != nil {
+		logger.WithError(err).Fatalln("Could not create plant photos directory")
+		return
+	}
+
+	// Create a file-based bucket.
+	bucket, err := fileblob.OpenBucket(photoDir, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	api := api.NewAPI(
 		cfg,
 		logger,
 		db,
+		bucket,
 	)
 
 	go func() {

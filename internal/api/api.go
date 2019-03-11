@@ -11,6 +11,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 	"github.com/teamxiv/growbot-api/internal/config"
+	"gocloud.dev/blob"
 )
 
 // API contains all the dependencies of the API server
@@ -19,6 +20,7 @@ type API struct {
 	Log    *logrus.Logger
 	Gin    *gin.Engine
 	DB     *sqlx.DB
+	Bucket *blob.Bucket
 
 	Server *http.Server
 }
@@ -57,6 +59,7 @@ func NewAPI(
 	conf *config.Config,
 	log *logrus.Logger,
 	db *sqlx.DB,
+	bucket *blob.Bucket,
 ) *API {
 
 	router := gin.Default()
@@ -73,6 +76,7 @@ func NewAPI(
 		Log:    log,
 		Gin:    router,
 		DB:     db,
+		Bucket: bucket,
 	}
 
 	// the jwt middleware
