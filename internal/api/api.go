@@ -185,6 +185,7 @@ func NewAPI(
 		plant := plants.Group("/:uuid", a.PlantCheck)
 		{
 			plant.GET("", a.PlantGet)
+			plant.DELETE("", a.PlantDelete)
 			plant.PATCH("", a.PlantRenamePatch)
 		}
 	}

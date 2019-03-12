@@ -66,6 +66,19 @@ func (a *API) PlantGet(c *gin.Context) {
 	c.JSON(http.StatusOK, plant)
 }
 
+// PlantDelete deletes the plant object
+func (a *API) PlantDelete(c *gin.Context) {
+	plant := c.MustGet("plant").(*models.Plant)
+
+	_, err := a.DB.Exec("delete from plants where id = $1", plant.ID)
+	if err != nil {
+		a.error(c, http.StatusInternalServerError, "could not delete plant: "+err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "success"})
+}
+
 // PlantCreatePost gets the plant object
 func (a *API) PlantCreatePost(c *gin.Context) {
 	input := struct {
