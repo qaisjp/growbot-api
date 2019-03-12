@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -62,7 +63,53 @@ func (a *API) EventListGet(c *gin.Context) {
 
 // EventCreatePost gets the plant object
 func (a *API) EventCreatePost(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"message": "not implemented (yet)"})
+	userID := c.GetInt("user_id")
+	input := struct {
+		models.Event
+		Actions []models.EventAction
+	}{}
+
+	err := c.BindJSON(&input)
+	if err != nil {
+		a.error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	hasActions := len(input.Actions) > 0
+
+	query := `insert into events (summary, recurrence, user_id) values ($1, $2, $3) returning id`
+	if hasActions {
+		query = "with inserted as (" + query + ")"
+	}
+
+	args := []interface{}{input.Event.Summary, input.Recurrences, userID}
+
+	for i, action := range input.Actions {
+		if i == 0 {
+			query += "\ninsert into event_actions (event_id, name, plant_id, data) values "
+		} else {
+			query += ", "
+		}
+
+		argCount := len(args)
+		query += fmt.Sprintf("\n( (select id from inserted), $%d, $%d, $%d )", argCount+1, argCount+2, argCount+3)
+		args = append(args, action.Name, action.PlantID, action.Data)
+	}
+
+	if hasActions {
+		query += " returning (select id from inserted)"
+	}
+
+	var id int
+	err = a.DB.Get(&id, query, args...)
+	if err != nil {
+		a.error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"id": id,
+	})
 }
 
 // EventGet gets the Event object
