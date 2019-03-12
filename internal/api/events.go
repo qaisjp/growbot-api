@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -43,21 +44,56 @@ func (a *API) EventCheck(c *gin.Context) {
 	c.Set("event", &event)
 }
 
+// EventGet gets the Event object
+func (a *API) EventGet(c *gin.Context) {
+	event := c.MustGet("event").(*models.Event)
+
+	result := struct {
+		models.Event
+		Actions []models.EventAction `json:"actions"`
+	}{Event: *event}
+
+	err := a.DB.Select(&result.Actions, "select * from event_actions as a where a.event_id=$1", event.ID)
+	if err != nil {
+		a.error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
 // EventListGet gets the plant object
 func (a *API) EventListGet(c *gin.Context) {
 	userID := c.GetInt("user_id")
 
-	events := []models.Event{}
+	events := []struct {
+		models.Event
+		Actions string `json:"actions" db:"actions"`
+	}{}
 
-	err := a.DB.Select(&events, "select * from events where user_id=$1", userID)
+	err := a.DB.Select(&events, "select e.*, json_agg(a) as actions from event_actions as a,events as e where e.user_id = $1 and a.event_id = e.id group by e.id", userID)
 
 	if err != nil {
 		a.error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
+	type Result []struct {
+		models.Event
+		Action []models.EventAction
+	}
+	result := make(Result, len(events))
+
+	for i, event := range events {
+		result[i].Event = events[i].Event
+		if err := json.Unmarshal([]byte(event.Actions), &result[i].Action); err != nil {
+			a.error(c, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"events": events,
+		"events": result,
 	})
 }
 
@@ -110,13 +146,6 @@ func (a *API) EventCreatePost(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"id": id,
 	})
-}
-
-// EventGet gets the Event object
-func (a *API) EventGet(c *gin.Context) {
-	event := c.MustGet("event").(*models.Event)
-
-	c.JSON(http.StatusOK, event)
 }
 
 // EventPut updates the event object
