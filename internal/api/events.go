@@ -1,11 +1,11 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/jmoiron/sqlx/types"
 	"github.com/teamxiv/growbot-api/internal/models"
 
 	"github.com/gin-gonic/gin"
@@ -62,38 +62,47 @@ func (a *API) EventGet(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+type expandedEvent struct {
+	models.Event
+	Action []models.EventAction
+}
+
+func (a *API) expandedEventsByUserID(userID int) ([]expandedEvent, error) {
+	events := []struct {
+		models.Event
+		Actions types.JSONText `json:"actions" db:"actions"`
+	}{}
+
+	err := a.DB.Select(&events, "select e.*, json_agg(a) as actions from event_actions as a,events as e where e.user_id = $1 and a.event_id = e.id group by e.id", userID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]expandedEvent, len(events))
+
+	for i, event := range events {
+		result[i].Event = event.Event
+
+		if err := event.Actions.Unmarshal(&result[i].Action); err != nil {
+			return nil, err
+		}
+	}
+
+	return result, nil
+}
+
 // EventListGet gets the plant object
 func (a *API) EventListGet(c *gin.Context) {
 	userID := c.GetInt("user_id")
 
-	events := []struct {
-		models.Event
-		Actions string `json:"actions" db:"actions"`
-	}{}
-
-	err := a.DB.Select(&events, "select e.*, json_agg(a) as actions from event_actions as a,events as e where e.user_id = $1 and a.event_id = e.id group by e.id", userID)
-
+	events, err := a.expandedEventsByUserID(userID)
 	if err != nil {
-		a.error(c, http.StatusBadRequest, err.Error())
+		a.error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	type Result []struct {
-		models.Event
-		Action []models.EventAction
-	}
-	result := make(Result, len(events))
-
-	for i, event := range events {
-		result[i].Event = events[i].Event
-		if err := json.Unmarshal([]byte(event.Actions), &result[i].Action); err != nil {
-			a.error(c, http.StatusInternalServerError, err.Error())
-			return
-		}
-	}
-
 	c.JSON(http.StatusOK, gin.H{
-		"events": result,
+		"events": events,
 	})
 }
 
