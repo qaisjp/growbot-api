@@ -256,6 +256,7 @@ func (a *API) EventCreatePost(c *gin.Context) {
 	}
 
 	args := []interface{}{input.Event.Summary, input.Recurrences, userID}
+	rids := make(map[uuid.UUID]struct{})
 
 	for i, action := range input.Actions {
 		if i == 0 {
@@ -263,6 +264,8 @@ func (a *API) EventCreatePost(c *gin.Context) {
 		} else {
 			query += ", "
 		}
+
+		rids[action.RobotID] = struct{}{}
 
 		argCount := len(args)
 		query += fmt.Sprintf("\n( (select id from inserted), $%d, $%d, $%d, $%d )", argCount+1, argCount+2, argCount+3, argCount+4)
@@ -278,6 +281,10 @@ func (a *API) EventCreatePost(c *gin.Context) {
 	if err != nil {
 		a.error(c, http.StatusInternalServerError, err.Error())
 		return
+	}
+
+	for rid := range rids {
+		a.pingRobotEvents(rid)
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
