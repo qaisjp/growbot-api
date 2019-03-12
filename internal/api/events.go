@@ -5,6 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
+
 	"github.com/jmoiron/sqlx/types"
 	"github.com/teamxiv/growbot-api/internal/models"
 
@@ -73,7 +76,7 @@ func (a *API) expandedEventsByUserID(userID int) ([]expandedEvent, error) {
 		Actions types.JSONText `json:"actions" db:"actions"`
 	}{}
 
-	err := a.DB.Select(&events, "select e.*, json_agg(a) as actions from event_actions as a,events as e where e.user_id = $1 and a.event_id = e.id group by e.id", userID)
+	err := a.DB.Select(&events, "select e.*, json_agg(a) as actions from event_actions as a, events as e where e.user_id=$1 and a.event_id=e.id group by e.id", userID)
 	if err != nil {
 		return nil, err
 	}
@@ -90,6 +93,131 @@ func (a *API) expandedEventsByUserID(userID int) ([]expandedEvent, error) {
 
 	return result, nil
 }
+
+func (a *API) pingRobotEvents(rid uuid.UUID) {
+	robotCtxsMutex.Lock()
+	c, ok := robotCtxs[rid]
+	robotCtxsMutex.Unlock()
+
+	// If not connected, stop
+	if !ok {
+		return
+	}
+
+	events := []struct {
+		models.Event
+		Actions types.JSONText `json:"actions" db:"actions"`
+	}{}
+
+	err := a.DB.Select(&events, "select e.*, json_agg(a) as actions from event_actions as a, events as e where a.robot_id=$1 and a.event_id=e.id group by e.id;", rid)
+	if err != nil {
+		a.Log.WithError(err).WithField("rid", rid).Warnln("could not get events from db")
+		return
+	}
+
+	result := make([]expandedEvent, len(events))
+
+	for i, event := range events {
+		result[i].Event = event.Event
+
+		if err := event.Actions.Unmarshal(&result[i].Action); err != nil {
+			a.Log.WithError(err).WithField("rid", rid).Warnln("could not unmarshal actions")
+			return
+		}
+	}
+
+	ws := c.MustGet("ws").(*websocket.Conn)
+
+	msg := struct {
+		Type string          `json:"type"`
+		Data []expandedEvent `json:"data"`
+	}{"events", result}
+
+	err = ws.WriteJSON(msg)
+	if err != nil {
+		a.Log.WithError(err).WithField("rid", rid).Warnln("could not send events")
+	}
+}
+
+// func (a *API) pingUserEvents(uid *int, rid *uuid.UUID) {
+// 	var events []expandedEvent
+
+// 	rids := []uuid.UUID{}
+// 	if uid != nil {
+// 		var error
+// 		events, err = a.expandedEventsByUserID(uid)
+// 		if err != nil {
+// 			a.Log.WithError(err).WithField("uid", uid).Warnln("could not gather events")
+// 			return
+// 		}
+// 	} else {
+// 		// Get associated IDs
+// 		err := a.DB.Get(&rids, "select array_agg(id) from robots where user_id=$1", uid)
+// 		if err != nil {
+// 			a.Log.WithError(err).WithField("uid", uid).Warnln("could not gather events")
+// 			return
+// 		}
+// 	}
+
+// 	if rid != nil {
+// 		fmt.Println(*rid)
+// 		rids = append(rids, *rid)
+// 		events, err =  a.expandedEventsByRobotID(*rid)
+// 		if err != nil {
+// 			a.Log.WithError(err).WithField("rid", *rid).Warnln("could not gather events")
+// 			return
+// 		}
+// 	}
+
+// 	eventMap := make(map[uuid.UUID][]expandedEvent)
+// 	for _, rid := range rids {
+// 		// Initialise to empty list
+// 		eventMap[rid] = []expandedEvent{}
+// 		fmt.Println("intialised")
+
+// 		for _, event := range events {
+// 			actions := []models.EventAction{}
+// 			for _, action := range event.Action {
+// 				if action.RobotID == rid {
+// 					actions = append(actions, action)
+// 				}
+// 			}
+
+// 			if len(actions) > 0 {
+// 				e := expandedEvent{
+// 					Event:  event.Event,
+// 					Action: actions,
+// 				}
+// 				eventMap[rid] = append(eventMap[rid], e)
+// 			}
+// 		}
+// 	}
+
+// 	for _, rid := range rids {
+
+// 		robotCtxsMutex.Lock()
+// 		c, ok := robotCtxs[rid]
+// 		robotCtxsMutex.Unlock()
+
+// 		// If not connected, continue
+// 		if !ok {
+// 			continue
+// 		}
+
+// 		ws := c.MustGet("ws").(*websocket.Conn)
+
+// 		msg := struct {
+// 			Type string          `json:"type"`
+// 			Data []expandedEvent `json:"data"`
+// 		}{"events", eventMap[rid]}
+
+// 		err := ws.WriteJSON(msg)
+// 		if err != nil {
+// 			a.Log.WithError(err).WithField("uid", uid).Warnln("could not send events")
+// 		}
+// 	}
+
+// }
 
 // EventListGet gets the plant object
 func (a *API) EventListGet(c *gin.Context) {
