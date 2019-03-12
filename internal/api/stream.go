@@ -72,7 +72,7 @@ func (a *API) GetStream(rid uuid.UUID) *Stream {
 				select {
 				case <-tick.C:
 					if time.Now().Sub(stream.LastUpdate) > VideoDeathThreshold {
-						a.Log.WithField("uuid", rid).Infoln("Pushed dead image")
+						// a.Log.WithField("uuid", rid).Infoln("Pushed dead image")
 						if err := stream.Inner.Update(deadBytes); err != nil {
 							a.Log.WithError(err).WithField("uuid", rid).Warnln("Could not add dead image")
 						}
