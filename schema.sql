@@ -54,7 +54,8 @@ CREATE TABLE public.event_actions (
     name public.event_action_name NOT NULL,
     data jsonb NOT NULL,
     plant_id uuid NOT NULL,
-    event_id integer NOT NULL
+    event_id integer NOT NULL,
+    robot_id uuid NOT NULL
 );
 
 
@@ -368,6 +369,14 @@ ALTER TABLE ONLY public.event_actions
 
 ALTER TABLE ONLY public.event_actions
     ADD CONSTRAINT event_actions_plant_id_fkey FOREIGN KEY (plant_id) REFERENCES public.plants(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: event_actions event_actions_robot_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.event_actions
+    ADD CONSTRAINT event_actions_robot_id_fkey FOREIGN KEY (robot_id) REFERENCES public.robots(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
