@@ -131,14 +131,14 @@ func (a *API) EventCreatePost(c *gin.Context) {
 
 	for i, action := range input.Actions {
 		if i == 0 {
-			query += "\ninsert into event_actions (event_id, name, plant_id, data) values "
+			query += "\ninsert into event_actions (event_id, name, plant_id, robot_id, data) values "
 		} else {
 			query += ", "
 		}
 
 		argCount := len(args)
-		query += fmt.Sprintf("\n( (select id from inserted), $%d, $%d, $%d )", argCount+1, argCount+2, argCount+3)
-		args = append(args, action.Name, action.PlantID, action.Data)
+		query += fmt.Sprintf("\n( (select id from inserted), $%d, $%d, $%d, $%d )", argCount+1, argCount+2, argCount+3, argCount+4)
+		args = append(args, action.Name, action.PlantID, action.RobotID, action.Data)
 	}
 
 	if hasActions {
