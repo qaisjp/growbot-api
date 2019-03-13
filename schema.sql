@@ -53,7 +53,7 @@ CREATE TABLE public.event_actions (
     id integer NOT NULL,
     name public.event_action_name NOT NULL,
     data jsonb NOT NULL,
-    plant_id uuid NOT NULL,
+    plant_id uuid,
     event_id integer NOT NULL,
     robot_id uuid NOT NULL
 );
