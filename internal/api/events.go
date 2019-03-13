@@ -67,7 +67,7 @@ func (a *API) EventGet(c *gin.Context) {
 
 type expandedEvent struct {
 	models.Event
-	Action []models.EventAction
+	Action []models.EventAction `json:"actions"`
 }
 
 func (a *API) expandedEventsByUserID(userID int) ([]expandedEvent, error) {
