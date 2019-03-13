@@ -19,7 +19,7 @@ type EventAction struct {
 	ID      int            `json:"id" db:"id"`
 	Name    string         `json:"name" db:"name"`
 	Data    types.JSONText `json:"data" db:"data"`
-	PlantID uuid.UUID      `json:"plant_id" db:"plant_id"`
+	PlantID *uuid.UUID     `json:"plant_id,omitempty" db:"plant_id"`
 	RobotID uuid.UUID      `json:"robot_id" db:"robot_id"`
 	EventID int            `json:"event_id" db:"event_id"`
 }
@@ -27,4 +27,5 @@ type EventAction struct {
 const (
 	EventActionPlantWater        = "PLANT_WATER"
 	EventActionPlantCapturePhoto = "PLANT_CAPTURE_PHOTO"
+	EventActionRobotRandomMove   = "ROBOT_RANDOM_MOVE"
 )
