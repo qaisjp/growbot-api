@@ -3,6 +3,7 @@ config.yml
 /cmd/growbot-api/growbot-api
 /cmd/growbot-ws-test/growbot-ws-test
 /cmd/growbot-video-test/growbot-video-test
+/cmd/growbot-photo-test/growbot-photo-test
 dev_backup
 dev_saves
 staticphotos/
