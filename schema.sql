@@ -21,7 +21,8 @@ SET row_security = off;
 
 CREATE TYPE public.event_action_name AS ENUM (
     'PLANT_WATER',
-    'PLANT_CAPTURE_PHOTO'
+    'PLANT_CAPTURE_PHOTO',
+    'ROBOT_RANDOM_MOVEMENT'
 );
 
 
