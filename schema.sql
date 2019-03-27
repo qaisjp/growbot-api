@@ -121,6 +121,45 @@ ALTER SEQUENCE public.events_id_seq OWNED BY public.events.id;
 
 
 --
+-- Name: log; Type: TABLE; Schema: public; Owner: growbot
+--
+
+CREATE TABLE public.log (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    message text NOT NULL,
+    severity integer NOT NULL,
+    robot_id uuid,
+    plant_id uuid,
+    created_at timestamp without time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.log OWNER TO growbot;
+
+--
+-- Name: log_id_seq; Type: SEQUENCE; Schema: public; Owner: growbot
+--
+
+CREATE SEQUENCE public.log_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.log_id_seq OWNER TO growbot;
+
+--
+-- Name: log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: growbot
+--
+
+ALTER SEQUENCE public.log_id_seq OWNED BY public.log.id;
+
+
+--
 -- Name: plant_photos; Type: TABLE; Schema: public; Owner: growbot
 --
 
@@ -264,6 +303,13 @@ ALTER TABLE ONLY public.events ALTER COLUMN id SET DEFAULT nextval('public.event
 
 
 --
+-- Name: log id; Type: DEFAULT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.log ALTER COLUMN id SET DEFAULT nextval('public.log_id_seq'::regclass);
+
+
+--
 -- Name: plant_photos id; Type: DEFAULT; Schema: public; Owner: growbot
 --
 
@@ -291,6 +337,14 @@ ALTER TABLE ONLY public.event_actions
 
 ALTER TABLE ONLY public.events
     ADD CONSTRAINT events_id_key PRIMARY KEY (id);
+
+
+--
+-- Name: log log_id_pkey; Type: CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.log
+    ADD CONSTRAINT log_id_pkey PRIMARY KEY (id);
 
 
 --
@@ -386,6 +440,30 @@ ALTER TABLE ONLY public.event_actions
 
 ALTER TABLE ONLY public.events
     ADD CONSTRAINT events_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: log log_plant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.log
+    ADD CONSTRAINT log_plant_id_fkey FOREIGN KEY (plant_id) REFERENCES public.plants(id);
+
+
+--
+-- Name: log log_robot_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.log
+    ADD CONSTRAINT log_robot_id_fkey FOREIGN KEY (robot_id) REFERENCES public.robots(id);
+
+
+--
+-- Name: log log_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.log
+    ADD CONSTRAINT log_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
