@@ -127,6 +127,7 @@ ALTER SEQUENCE public.events_id_seq OWNED BY public.events.id;
 CREATE TABLE public.log (
     id integer NOT NULL,
     user_id integer NOT NULL,
+    type text NOT NULL,
     message text NOT NULL,
     severity integer NOT NULL,
     robot_id uuid,
@@ -501,4 +502,3 @@ ALTER TABLE ONLY public.robots
 --
 -- PostgreSQL database dump complete
 --
-
