@@ -201,6 +201,45 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 				continue
 			}
 
+		case "CREATE_LOG_ENTRY":
+			_, plantExists := msg.Data["plant_id"]
+			var plantID *uuid.UUID
+			if plantExists {
+				id, err := uuid.Parse(msg.Data["plant_id"].(string))
+				plantID = &id
+				if err != nil {
+					a.Log.WithField("data", msg.Data).WithError(err).Warnln("could not parse plant_id for CREATE_LOG_ENTRY")
+					continue
+				}
+			}
+
+			var uid *int
+			err := a.DB.Get(&uid, "select user_id from robots where id=$1", rid)
+			if err != nil {
+				a.Log.WithField("data", msg.Data).WithError(err).Warnln("could not get user id for CREATE_LOG_ENTRY")
+				continue
+			}
+
+			// Forget log entries when the robot is unregistered
+			if uid == nil {
+				continue
+			}
+
+			entry := LogEntry{
+				UserID:   *uid,
+				Type:     msg.Data["type"].(string),
+				Message:  msg.Data["message"].(string),
+				Severity: int(msg.Data["severity"].(float64)),
+				RobotID:  &rid,
+				PlantID:  plantID,
+			}
+
+			_, err = a.DB.NamedQuery("insert into log(user_id, type, message, severity, robot_id, plant_id) values (:user_id, :type, :message, :severity, :robot_id, :plant_id)", entry)
+			if err != nil {
+				a.Log.WithError(err).WithField("data", msg.Data).Warnln("could not insert log entry for CREATE_LOG_ENTRY")
+				continue
+			}
+
 		default:
 			a.Log.WithField("Type", msg.Type).Warnln("Received message with unk type from robot stream")
 		}
