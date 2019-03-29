@@ -146,6 +146,12 @@ func NewAPI(
 		auth.POST("/chgpass", authRequired, a.AuthChgPassPost)
 	}
 
+	// Log
+	logs := router.Group("/log", authRequired)
+	{
+		logs.GET("", a.LogListGet)
+	}
+
 	// Robots
 	robots := router.Group("/robots", authRequired)
 	{
