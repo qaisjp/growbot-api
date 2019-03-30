@@ -7,9 +7,10 @@ import (
 )
 
 type Plant struct {
-	ID     uuid.UUID `json:"id" db:"id"`
-	Name   string    `json:"name" db:"name"`
-	UserID int       `json:"user_id" db:"user_id"`
+	ID           uuid.UUID `json:"id" db:"id"`
+	Name         string    `json:"name" db:"name"`
+	UserID       int       `json:"user_id" db:"user_id"`
+	SoilMoisture *int      `json:"soil_moisture" db:"soil_moisture"`
 }
 
 type PlantPhoto struct {
