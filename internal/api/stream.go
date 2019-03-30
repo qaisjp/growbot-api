@@ -103,10 +103,18 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 	ctx.Set("ws", c)
 
 	// Update seen_at
-	_, err = a.DB.Exec("update robot_state set seen_at=now() where id = $1", rid)
-	if err != nil {
-		a.Log.WithError(err).WithField("rid", rid).Warnln("Could not update seen_at")
+	updateSeenAt := func() {
+		now := time.Now()
+		_, err = a.DB.Exec("update robot_state set seen_at=$2 where id = $1", rid, now)
+		if err != nil {
+			a.Log.WithError(err).WithField("rid", rid).Warnln("Could not update seen_at")
+		}
+
+		if robot.UserID != nil {
+			a.userStreams.transmit(*robot.UserID, "UPDATE_ROBOT_STATE", map[string]interface{}{"id": rid, "seen_at": now})
+		}
 	}
+	updateSeenAt()
 
 	// Add this websocket connection to the map (and cancel the existing one)
 	{
@@ -146,10 +154,7 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 			break
 		}
 
-		_, err = a.DB.Exec("update robot_state set seen_at=now() where id = $1", rid)
-		if err != nil {
-			a.Log.WithError(err).WithField("rid", rid).Warnln("Could not update seen_at")
-		}
+		updateSeenAt()
 
 		msg := struct {
 			Type string
