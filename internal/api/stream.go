@@ -90,7 +90,8 @@ func (a *API) GetStream(rid uuid.UUID) *Stream {
 func (a *API) StreamRobot(ctx *gin.Context) {
 	w, r := ctx.Writer, ctx.Request
 
-	rid := ctx.MustGet("robot").(*models.Robot).ID
+	robot := ctx.MustGet("robot").(*models.Robot)
+	rid := robot.ID
 
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -237,6 +238,36 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 			_, err = a.DB.NamedQuery("insert into log(user_id, type, message, severity, robot_id, plant_id) values (:user_id, :type, :message, :severity, :robot_id, :plant_id)", entry)
 			if err != nil {
 				a.Log.WithError(err).WithField("data", msg.Data).Warnln("could not insert log entry for CREATE_LOG_ENTRY")
+				continue
+			}
+
+		case "UPDATE_SOIL_MOISTURE":
+			_, plantExists := msg.Data["plant_id"]
+			if !plantExists {
+				a.Log.WithField("data", msg.Data).Warnln("no plant_id provided for UPDATE_SOIL_MOISTURE")
+				continue
+			}
+
+			plantID, err := uuid.Parse(msg.Data["plant_id"].(string))
+			if err != nil {
+				a.Log.WithField("data", msg.Data).WithError(err).Warnln("could not parse plant_id for UPDATE_SOIL_MOISTURE")
+				continue
+			}
+
+			plant := models.Plant{}
+			err = a.DB.Get(&plant, "select user_id from plants where id=$1", plantID)
+			if err != nil {
+				a.Log.WithField("data", msg.Data).WithError(err).Warnln("could not get plant for UPDATE_SOIL_MOISTURE")
+				continue
+			}
+
+			if plant.UserID != *robot.UserID {
+				continue
+			}
+
+			_, err = a.DB.Exec("update plants set soil_moisture=$2 where id=$1", plantID, int(msg.Data["moisture"].(float64)))
+			if err != nil {
+				a.Log.WithError(err).WithField("data", msg.Data).Warnln("could not update soil moisture for UPDATE_SOIL_MOISTURE")
 				continue
 			}
 

@@ -203,7 +203,8 @@ ALTER SEQUENCE public.plant_photos_id_seq OWNED BY public.plant_photos.id;
 CREATE TABLE public.plants (
     id uuid NOT NULL,
     user_id integer NOT NULL,
-    name text NOT NULL
+    name text NOT NULL,
+    soil_moisture integer
 );
 
 
