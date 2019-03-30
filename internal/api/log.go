@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -30,9 +31,48 @@ type LogEntry struct {
 func (a *API) LogListGet(c *gin.Context) {
 	userID := c.GetInt("user_id")
 
+	input := struct {
+		RobotID  *string `form:"robot_id"`
+		PlantID  *string `form:"plant_id"`
+		Severity *int    `form:"severity"`
+		Limit    int     `form:"limit,default=10"`
+		Offset   int     `form:"offset,default=0"`
+	}{}
+
+	if err := c.BindQuery(&input); err != nil {
+		a.error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	args := []interface{}{userID}
+	query := "user_id=$1"
+	queryIndex := 1
+
+	if input.RobotID != nil {
+		queryIndex++
+		args = append(args, *input.RobotID)
+		query += fmt.Sprintf(" and robot_id=$%d", queryIndex)
+	}
+
+	if input.PlantID != nil {
+		queryIndex++
+		args = append(args, *input.PlantID)
+		query += fmt.Sprintf(" and plant_id=$%d", queryIndex)
+	}
+
+	if input.Severity != nil {
+		queryIndex++
+		args = append(args, *input.Severity)
+		query += fmt.Sprintf(" and severity=$%d", queryIndex)
+	}
+
+	queryIndex += 2
+	args = append(args, input.Limit, input.Offset)
+	query += fmt.Sprintf(" order by created_at desc limit $%d offset $%d", queryIndex-1, queryIndex)
+
 	entries := []LogEntry{}
 
-	err := a.DB.Select(&entries, "select * from log where user_id=$1", userID)
+	err := a.DB.Select(&entries, "select * from log where "+query+" ", args...)
 	if err != nil {
 		a.error(c, http.StatusInternalServerError, err.Error())
 		return
