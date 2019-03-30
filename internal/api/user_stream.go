@@ -20,16 +20,23 @@ func newUserStream() *userStreams {
 	}
 }
 
-func (s *userStreams) get(uid int) []*websocket.Conn {
+func (s *userStreams) transmit(uid int, typ string, data interface{}) {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 
 	a, ok := s.m[uid]
 	if !ok {
-		return []*websocket.Conn{}
+		return
 	}
 
-	return a
+	message := struct {
+		Type string      `json:"type"`
+		Data interface{} `json:"data"`
+	}{typ, data}
+
+	for _, c := range a {
+		c.WriteJSON(message)
+	}
 }
 
 func (s *userStreams) add(uid int, conn *websocket.Conn) {
