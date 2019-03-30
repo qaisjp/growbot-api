@@ -94,8 +94,8 @@ func NewAPI(
 	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
 		Realm:           "test zone",
 		Key:             []byte("secret key"),
-		Timeout:         time.Hour,
-		MaxRefresh:      time.Hour,
+		Timeout:         time.Hour * 6,
+		MaxRefresh:      time.Hour * 24 * 3,
 		IdentityKey:     "user_id",
 		PayloadFunc:     a.jwtPayloadFunc,
 		IdentityHandler: a.jwtIdentityHandler,
