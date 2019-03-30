@@ -235,11 +235,23 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 				PlantID:  plantID,
 			}
 
-			_, err = a.DB.NamedQuery("insert into log(user_id, type, message, severity, robot_id, plant_id) values (:user_id, :type, :message, :severity, :robot_id, :plant_id)", entry)
+			result, err := a.DB.NamedQuery("insert into log(user_id, type, message, severity, robot_id, plant_id) values (:user_id, :type, :message, :severity, :robot_id, :plant_id) returning id, created_at", entry)
 			if err != nil {
 				a.Log.WithError(err).WithField("data", msg.Data).Warnln("could not insert log entry for CREATE_LOG_ENTRY")
 				continue
 			}
+
+			if !result.Next() {
+				a.Log.Warnln("Expected result.Next() to return true for CREATE_LOG_ENTRY")
+				continue
+			}
+
+			if err := result.StructScan(&entry); err != nil {
+				a.Log.WithError(err).WithField("data", msg.Data).Warnln("could not scan log entry for CREATE_LOG_ENTRY")
+				continue
+			}
+
+			a.userStreams.transmit(entry.UserID, "NEW_LOG_ENTRY", entry)
 
 		case "UPDATE_SOIL_MOISTURE":
 			_, plantExists := msg.Data["plant_id"]
