@@ -23,6 +23,8 @@ type API struct {
 	Bucket *blob.Bucket
 
 	Server *http.Server
+
+	userStreams *userStreams
 }
 
 // Start binds the API and starts listening.
@@ -84,6 +86,8 @@ func NewAPI(
 		Gin:    router,
 		DB:     db,
 		Bucket: bucket,
+
+		userStreams: &userStreams{},
 	}
 
 	// the jwt middleware
@@ -127,7 +131,7 @@ func NewAPI(
 	// Stream
 	{
 		// General websocket
-		router.GET("/stream", authRequired, a.NotImplemented)
+		router.GET("/stream", authRequired, a.StreamUser)
 
 		// Robots can connect to the stream without authentication
 		router.GET("/stream/:uuid", a.RobotCheck, a.StreamRobot)
