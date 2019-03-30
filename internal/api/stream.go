@@ -277,11 +277,17 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 				continue
 			}
 
-			_, err = a.DB.Exec("update plants set soil_moisture=$2 where id=$1", plantID, int(msg.Data["moisture"].(float64)))
+			moisture := int(msg.Data["moisture"].(float64))
+			_, err = a.DB.Exec("update plants set soil_moisture=$2 where id=$1", plantID, moisture)
 			if err != nil {
 				a.Log.WithError(err).WithField("data", msg.Data).Warnln("could not update soil moisture for UPDATE_SOIL_MOISTURE")
 				continue
 			}
+
+			a.userStreams.transmit(plant.UserID, "UPDATE_SOIL_MOISTURE", map[string]interface{}{
+				"plant_id": plantID,
+				"moisture": moisture,
+			})
 
 		default:
 			a.Log.WithField("Type", msg.Type).Warnln("Received message with unk type from robot stream")
