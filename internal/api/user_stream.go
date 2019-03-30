@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/teamxiv/growbot-api/internal/models"
 )
 
 type userStreams struct {
@@ -20,7 +19,7 @@ func newUserStream() *userStreams {
 	}
 }
 
-func (s *userStreams) transmit(uid int, typ string, data interface{}) {
+func (s *userStreams) transmit(uid int, msgType string, data interface{}) {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 
@@ -32,7 +31,7 @@ func (s *userStreams) transmit(uid int, typ string, data interface{}) {
 	message := struct {
 		Type string      `json:"type"`
 		Data interface{} `json:"data"`
-	}{typ, data}
+	}{msgType, data}
 
 	for _, c := range a {
 		c.WriteJSON(message)
@@ -72,8 +71,7 @@ func (s *userStreams) remove(uid int, conn *websocket.Conn) {
 func (a *API) StreamUser(ctx *gin.Context) {
 	w, r := ctx.Writer, ctx.Request
 
-	user := ctx.MustGet("user").(*models.User)
-	uid := user.ID
+	uid := ctx.MustGet("user_id").(int)
 
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {

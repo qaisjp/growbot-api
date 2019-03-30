@@ -87,7 +87,7 @@ func NewAPI(
 		DB:     db,
 		Bucket: bucket,
 
-		userStreams: &userStreams{},
+		userStreams: newUserStream(),
 	}
 
 	// the jwt middleware
