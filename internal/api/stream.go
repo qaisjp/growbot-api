@@ -89,6 +89,140 @@ func (a *API) GetStream(rid uuid.UUID) *Stream {
 	return stream
 }
 
+func (a *API) streamRobotPlantCapturePhoto(ctx *gin.Context, data map[string]interface{}, rid uuid.UUID) {
+	plantID := int(data["plant_id"].(float64))
+	plantImageB64 := data["image"].(string)
+
+	a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO received")
+
+	// todo: verify user owns plantID
+
+	u := uuid.New()
+	filename := photoBucketKey(u)
+	photo := models.PlantPhoto{
+		Filename: u,
+		PlantID:  plantID,
+	}
+
+	w, err := a.Bucket.NewWriter(ctx, filename, nil)
+	if err != nil {
+		a.Log.WithError(err).Warnln("could not create bucket for PLANT_CAPTURE_PHOTO")
+		return
+	}
+
+	a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO writer created")
+
+	rb := base64.NewDecoder(base64.StdEncoding, bytes.NewReader([]byte(plantImageB64)))
+
+	a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO base64 decoder created")
+
+	_, err = io.Copy(w, rb)
+	if err != nil {
+		a.Log.WithError(err).Warnln("could not decode base64 image into bucket")
+		return
+	}
+
+	a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO copied to bucket")
+
+	err = w.Close()
+	if err != nil {
+		a.Log.WithError(err).Warnln("could not close bucket writer")
+	}
+
+	a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO inserting into db")
+
+	rows, err := a.DB.NamedQuery("insert into plant_photos(filename, plant_id) values (:filename, :plant_id)", photo)
+	defer rows.Close()
+	if err != nil {
+		_ = a.Bucket.Delete(ctx, filename)
+		a.Log.WithError(err).WithField("plant_id", plantID).Warnln("could not insert file for PLANT_CAPTURE_PHOTO")
+		return
+	}
+
+	a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO done")
+}
+
+func (a *API) streamRobotCreateLogEntry(data map[string]interface{}, rid uuid.UUID) {
+	var plantID *int
+	if val, ok := data["plant_id"]; ok && val != nil {
+		id := int(val.(float64))
+		plantID = &id
+	}
+
+	var uid *int
+	err := a.DB.Get(&uid, "select user_id from robots where id=$1", rid)
+	if err != nil {
+		a.Log.WithField("data", data).WithError(err).Warnln("could not get user id for CREATE_LOG_ENTRY")
+		return
+	}
+
+	// Forget log entries when the robot is unregistered
+	if uid == nil {
+		return
+	}
+
+	entry := LogEntry{
+		UserID:   *uid,
+		Type:     data["type"].(string),
+		Message:  data["message"].(string),
+		Severity: int(data["severity"].(float64)),
+		RobotID:  &rid,
+		PlantID:  plantID,
+	}
+
+	rows, err := a.DB.NamedQuery("insert into log(user_id, type, message, severity, robot_id, plant_id) values (:user_id, :type, :message, :severity, :robot_id, :plant_id) returning id, created_at", entry)
+	defer rows.Close()
+	if err != nil {
+		a.Log.WithError(err).WithField("data", data).Warnln("could not insert log entry for CREATE_LOG_ENTRY")
+		return
+	}
+
+	if !rows.Next() {
+		a.Log.Warnln("Expected rows.Next() to return true for CREATE_LOG_ENTRY")
+		return
+	}
+
+	if err := rows.StructScan(&entry); err != nil {
+		a.Log.WithError(err).WithField("data", data).Warnln("could not scan log entry for CREATE_LOG_ENTRY")
+		return
+	}
+
+	a.userStreams.transmit(entry.UserID, "CREATE_LOG_ENTRY", entry)
+}
+
+func (a *API) streamRobotUpdateSoilMoisture(data map[string]interface{}, robot *models.Robot) {
+	_, plantExists := data["plant_id"]
+	if !plantExists {
+		a.Log.WithField("data", data).Warnln("no plant_id provided for UPDATE_SOIL_MOISTURE")
+		return
+	}
+
+	plantID := int(data["plant_id"].(float64))
+
+	plant := models.Plant{}
+	err := a.DB.Get(&plant, "select user_id from plants where id=$1", plantID)
+	if err != nil {
+		a.Log.WithField("data", data).WithError(err).Warnln("could not get plant for UPDATE_SOIL_MOISTURE")
+		return
+	}
+
+	if plant.UserID != *robot.UserID {
+		return
+	}
+
+	moisture := int(data["moisture"].(float64))
+	_, err = a.DB.Exec("update plants set soil_moisture=$2 where id=$1", plantID, moisture)
+	if err != nil {
+		a.Log.WithError(err).WithField("data", data).Warnln("could not update soil moisture for UPDATE_SOIL_MOISTURE")
+		return
+	}
+
+	a.userStreams.transmit(plant.UserID, "UPDATE_SOIL_MOISTURE", map[string]interface{}{
+		"plant_id": plantID,
+		"moisture": moisture,
+	})
+}
+
 func (a *API) StreamRobot(ctx *gin.Context) {
 	w, r := ctx.Writer, ctx.Request
 
@@ -171,135 +305,13 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 
 		switch msg.Type {
 		case "PLANT_CAPTURE_PHOTO":
-			plantID := int(msg.Data["plant_id"].(float64))
-			plantImageB64 := msg.Data["image"].(string)
-
-			a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO received")
-
-			// todo: verify user owns plantID
-
-			u := uuid.New()
-			filename := photoBucketKey(u)
-			photo := models.PlantPhoto{
-				Filename: u,
-				PlantID:  plantID,
-			}
-
-			w, err := a.Bucket.NewWriter(ctx, filename, nil)
-			if err != nil {
-				a.Log.WithError(err).Warnln("could not create bucket for PLANT_CAPTURE_PHOTO")
-				continue
-			}
-
-			a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO writer created")
-
-			rb := base64.NewDecoder(base64.StdEncoding, bytes.NewReader([]byte(plantImageB64)))
-
-			a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO base64 decoder created")
-
-			_, err = io.Copy(w, rb)
-			if err != nil {
-				a.Log.WithError(err).Warnln("could not decode base64 image into bucket")
-				continue
-			}
-
-			a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO copied to bucket")
-
-			err = w.Close()
-			if err != nil {
-				a.Log.WithError(err).Warnln("could not close bucket writer")
-			}
-
-			a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO inserting into db")
-
-			rows, err := a.DB.NamedQuery("insert into plant_photos(filename, plant_id) values (:filename, :plant_id)", photo)
-			defer rows.Close()
-			if err != nil {
-				_ = a.Bucket.Delete(ctx, filename)
-				a.Log.WithError(err).WithField("plant_id", plantID).Warnln("could not insert file for PLANT_CAPTURE_PHOTO")
-				continue
-			}
-
-			a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO done")
+			a.streamRobotPlantCapturePhoto(ctx, msg.Data, rid)
 
 		case "CREATE_LOG_ENTRY":
-			var plantID *int
-			if val, ok := msg.Data["plant_id"]; ok && val != nil {
-				id := int(val.(float64))
-				plantID = &id
-			}
-
-			var uid *int
-			err := a.DB.Get(&uid, "select user_id from robots where id=$1", rid)
-			if err != nil {
-				a.Log.WithField("data", msg.Data).WithError(err).Warnln("could not get user id for CREATE_LOG_ENTRY")
-				continue
-			}
-
-			// Forget log entries when the robot is unregistered
-			if uid == nil {
-				continue
-			}
-
-			entry := LogEntry{
-				UserID:   *uid,
-				Type:     msg.Data["type"].(string),
-				Message:  msg.Data["message"].(string),
-				Severity: int(msg.Data["severity"].(float64)),
-				RobotID:  &rid,
-				PlantID:  plantID,
-			}
-
-			rows, err := a.DB.NamedQuery("insert into log(user_id, type, message, severity, robot_id, plant_id) values (:user_id, :type, :message, :severity, :robot_id, :plant_id) returning id, created_at", entry)
-			defer rows.Close()
-			if err != nil {
-				a.Log.WithError(err).WithField("data", msg.Data).Warnln("could not insert log entry for CREATE_LOG_ENTRY")
-				continue
-			}
-
-			if !rows.Next() {
-				a.Log.Warnln("Expected rows.Next() to return true for CREATE_LOG_ENTRY")
-				continue
-			}
-
-			if err := rows.StructScan(&entry); err != nil {
-				a.Log.WithError(err).WithField("data", msg.Data).Warnln("could not scan log entry for CREATE_LOG_ENTRY")
-				continue
-			}
-
-			a.userStreams.transmit(entry.UserID, "CREATE_LOG_ENTRY", entry)
+			a.streamRobotCreateLogEntry(msg.Data, rid)
 
 		case "UPDATE_SOIL_MOISTURE":
-			_, plantExists := msg.Data["plant_id"]
-			if !plantExists {
-				a.Log.WithField("data", msg.Data).Warnln("no plant_id provided for UPDATE_SOIL_MOISTURE")
-				continue
-			}
-
-			plantID := int(msg.Data["plant_id"].(float64))
-
-			plant := models.Plant{}
-			err = a.DB.Get(&plant, "select user_id from plants where id=$1", plantID)
-			if err != nil {
-				a.Log.WithField("data", msg.Data).WithError(err).Warnln("could not get plant for UPDATE_SOIL_MOISTURE")
-				continue
-			}
-
-			if plant.UserID != *robot.UserID {
-				continue
-			}
-
-			moisture := int(msg.Data["moisture"].(float64))
-			_, err = a.DB.Exec("update plants set soil_moisture=$2 where id=$1", plantID, moisture)
-			if err != nil {
-				a.Log.WithError(err).WithField("data", msg.Data).Warnln("could not update soil moisture for UPDATE_SOIL_MOISTURE")
-				continue
-			}
-
-			a.userStreams.transmit(plant.UserID, "UPDATE_SOIL_MOISTURE", map[string]interface{}{
-				"plant_id": plantID,
-				"moisture": moisture,
-			})
+			a.streamRobotUpdateSoilMoisture(msg.Data, robot)
 
 		default:
 			a.Log.WithField("Type", msg.Type).Warnln("Received message with unk type from robot stream")
