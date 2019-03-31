@@ -171,7 +171,7 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 
 		switch msg.Type {
 		case "PLANT_CAPTURE_PHOTO":
-			plantID := int(msg.Data["id"].(float64))
+			plantID := int(msg.Data["plant_id"].(float64))
 			plantImageB64 := msg.Data["image"].(string)
 
 			a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO received")
