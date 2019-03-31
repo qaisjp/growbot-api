@@ -222,10 +222,9 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 			a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO done")
 
 		case "CREATE_LOG_ENTRY":
-			_, plantExists := msg.Data["plant_id"]
 			var plantID *int
-			if plantExists {
-				id := int(msg.Data["plant_id"].(float64))
+			if val, ok := msg.Data["plant_id"]; ok && val != nil {
+				id := int(val.(float64))
 				plantID = &id
 			}
 
