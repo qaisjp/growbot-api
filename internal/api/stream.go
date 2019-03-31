@@ -211,9 +211,10 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 
 		case "CREATE_LOG_ENTRY":
 			_, plantExists := msg.Data["plant_id"]
-			var plantID int
+			var plantID *int
 			if plantExists {
-				plantID = int(msg.Data["plant_id"].(float64))
+				id := int(msg.Data["plant_id"].(float64))
+				plantID = &id
 			}
 
 			var uid *int
@@ -234,7 +235,7 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 				Message:  msg.Data["message"].(string),
 				Severity: int(msg.Data["severity"].(float64)),
 				RobotID:  &rid,
-				PlantID:  &plantID,
+				PlantID:  plantID,
 			}
 
 			result, err := a.DB.NamedQuery("insert into log(user_id, type, message, severity, robot_id, plant_id) values (:user_id, :type, :message, :severity, :robot_id, :plant_id) returning id, created_at", entry)
