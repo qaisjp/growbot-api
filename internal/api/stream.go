@@ -174,6 +174,8 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 			plantID := int(msg.Data["id"].(float64))
 			plantImageB64 := msg.Data["image"].(string)
 
+			a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO received")
+
 			// todo: verify user owns plantID
 
 			u := uuid.New()
@@ -189,7 +191,11 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 				continue
 			}
 
+			a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO writer created")
+
 			rb := base64.NewDecoder(base64.StdEncoding, bytes.NewReader([]byte(plantImageB64)))
+
+			a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO base64 decoder created")
 
 			_, err = io.Copy(w, rb)
 			if err != nil {
@@ -197,10 +203,14 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 				continue
 			}
 
+			a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO copied to bucket")
+
 			err = w.Close()
 			if err != nil {
 				a.Log.WithError(err).Warnln("could not close bucket writer")
 			}
+
+			a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO inserting into db")
 
 			_, err = a.DB.NamedQuery("insert into plant_photos(filename, plant_id) values (:filename, :plant_id)", photo)
 			if err != nil {
@@ -208,6 +218,8 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 				a.Log.WithError(err).WithField("plant_id", plantID).Warnln("could not insert file for PLANT_CAPTURE_PHOTO")
 				continue
 			}
+
+			a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO done")
 
 		case "CREATE_LOG_ENTRY":
 			_, plantExists := msg.Data["plant_id"]
