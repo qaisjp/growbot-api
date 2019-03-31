@@ -478,7 +478,7 @@ ALTER TABLE ONLY public.events
 --
 
 ALTER TABLE ONLY public.log
-    ADD CONSTRAINT log_plant_id_fkey FOREIGN KEY (plant_id) REFERENCES public.plants(id);
+    ADD CONSTRAINT log_plant_id_fkey FOREIGN KEY (plant_id) REFERENCES public.plants(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
@@ -486,7 +486,7 @@ ALTER TABLE ONLY public.log
 --
 
 ALTER TABLE ONLY public.log
-    ADD CONSTRAINT log_robot_id_fkey FOREIGN KEY (robot_id) REFERENCES public.robots(id);
+    ADD CONSTRAINT log_robot_id_fkey FOREIGN KEY (robot_id) REFERENCES public.robots(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
@@ -494,7 +494,7 @@ ALTER TABLE ONLY public.log
 --
 
 ALTER TABLE ONLY public.log
-    ADD CONSTRAINT log_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+    ADD CONSTRAINT log_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
@@ -526,10 +526,9 @@ ALTER TABLE ONLY public.robot_state
 --
 
 ALTER TABLE ONLY public.robots
-    ADD CONSTRAINT robots_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+    ADD CONSTRAINT robots_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
 -- PostgreSQL database dump complete
 --
-
