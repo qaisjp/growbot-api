@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"sync"
 	"time"
 
@@ -22,6 +23,7 @@ var upgrader = websocket.Upgrader{
 	// Currently uses default options
 	// ReadBufferSize:  1024,
 	// WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
 var robotCtxs = make(map[uuid.UUID]*gin.Context)
