@@ -212,7 +212,8 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 
 			a.Log.WithField("plant_id", plantID).Infoln("PLANT_CAPTURE_PHOTO inserting into db")
 
-			_, err = a.DB.NamedQuery("insert into plant_photos(filename, plant_id) values (:filename, :plant_id)", photo)
+			rows, err := a.DB.NamedQuery("insert into plant_photos(filename, plant_id) values (:filename, :plant_id)", photo)
+			defer rows.Close()
 			if err != nil {
 				_ = a.Bucket.Delete(ctx, filename)
 				a.Log.WithError(err).WithField("plant_id", plantID).Warnln("could not insert file for PLANT_CAPTURE_PHOTO")
@@ -249,18 +250,19 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 				PlantID:  plantID,
 			}
 
-			result, err := a.DB.NamedQuery("insert into log(user_id, type, message, severity, robot_id, plant_id) values (:user_id, :type, :message, :severity, :robot_id, :plant_id) returning id, created_at", entry)
+			rows, err := a.DB.NamedQuery("insert into log(user_id, type, message, severity, robot_id, plant_id) values (:user_id, :type, :message, :severity, :robot_id, :plant_id) returning id, created_at", entry)
+			defer rows.Close()
 			if err != nil {
 				a.Log.WithError(err).WithField("data", msg.Data).Warnln("could not insert log entry for CREATE_LOG_ENTRY")
 				continue
 			}
 
-			if !result.Next() {
-				a.Log.Warnln("Expected result.Next() to return true for CREATE_LOG_ENTRY")
+			if !rows.Next() {
+				a.Log.Warnln("Expected rows.Next() to return true for CREATE_LOG_ENTRY")
 				continue
 			}
 
-			if err := result.StructScan(&entry); err != nil {
+			if err := rows.StructScan(&entry); err != nil {
 				a.Log.WithError(err).WithField("data", msg.Data).Warnln("could not scan log entry for CREATE_LOG_ENTRY")
 				continue
 			}

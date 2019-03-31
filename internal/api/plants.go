@@ -96,19 +96,20 @@ func (a *API) PlantCreatePost(c *gin.Context) {
 		UserID: c.GetInt("user_id"),
 	}
 
-	result, err := a.DB.NamedQuery("insert into plants(name, user_id) values (:name, :user_id) returning id", row)
+	rows, err := a.DB.NamedQuery("insert into plants(name, user_id) values (:name, :user_id) returning id", row)
+	defer rows.Close()
 	if err != nil {
 		a.error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	if !result.Next() {
-		a.error(c, http.StatusInternalServerError, "Expected result.Next() to return true")
+	if !rows.Next() {
+		a.error(c, http.StatusInternalServerError, "Expected rows.Next() to return true")
 		return
 	}
 
 	var id int
-	if err := result.Scan(&id); err != nil {
+	if err := rows.Scan(&id); err != nil {
 		a.error(c, http.StatusInternalServerError, err.Error())
 		return
 	}

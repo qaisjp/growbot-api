@@ -79,21 +79,22 @@ func (a *API) AuthRegisterPost(c *gin.Context) {
 	// ...
 
 	// Create the row
-	result, err := a.DB.NamedQuery("insert into users(forename, surname, email, password, is_activated) values (:forename, :surname, :email, :password, :is_activated) RETURNING id", row)
+	rows, err := a.DB.NamedQuery("insert into users(forename, surname, email, password, is_activated) values (:forename, :surname, :email, :password, :is_activated) RETURNING id", row)
+	defer rows.Close()
 	if err != nil {
 		BadRequest(c, err.Error())
 		return
 	}
 
-	if result.Rows.Next() {
+	if rows.Rows.Next() {
 		var n int
-		result.Rows.Scan(&n)
+		rows.Rows.Scan(&n)
 
 		c.JSON(http.StatusOK, gin.H{
 			"message": "success",
 		})
 	} else {
-		BadRequest(c, result.Rows.Err().Error())
+		BadRequest(c, rows.Rows.Err().Error())
 	}
 }
 
