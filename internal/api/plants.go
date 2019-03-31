@@ -108,7 +108,7 @@ func (a *API) PlantCreatePost(c *gin.Context) {
 	}
 
 	var id int
-	if err := result.StructScan(&id); err != nil {
+	if err := result.Scan(&id); err != nil {
 		a.error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
