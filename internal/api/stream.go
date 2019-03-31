@@ -254,7 +254,7 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 				continue
 			}
 
-			a.userStreams.transmit(entry.UserID, "NEW_LOG_ENTRY", entry)
+			a.userStreams.transmit(entry.UserID, "CREATE_LOG_ENTRY", entry)
 
 		case "UPDATE_SOIL_MOISTURE":
 			_, plantExists := msg.Data["plant_id"]
