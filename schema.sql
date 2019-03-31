@@ -54,7 +54,7 @@ CREATE TABLE public.event_actions (
     id integer NOT NULL,
     name public.event_action_name NOT NULL,
     data jsonb NOT NULL,
-    plant_id uuid,
+    plant_id integer,
     event_id integer NOT NULL,
     robot_id uuid NOT NULL
 );
@@ -131,7 +131,7 @@ CREATE TABLE public.log (
     message text NOT NULL,
     severity integer NOT NULL,
     robot_id uuid,
-    plant_id uuid,
+    plant_id integer,
     created_at timestamp without time zone DEFAULT now() NOT NULL
 );
 
@@ -168,7 +168,7 @@ CREATE TABLE public.plant_photos (
     id integer NOT NULL,
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     filename uuid NOT NULL,
-    plant_id uuid NOT NULL
+    plant_id integer NOT NULL
 );
 
 
@@ -201,7 +201,7 @@ ALTER SEQUENCE public.plant_photos_id_seq OWNED BY public.plant_photos.id;
 --
 
 CREATE TABLE public.plants (
-    id uuid NOT NULL,
+    id integer NOT NULL,
     user_id integer NOT NULL,
     name text NOT NULL,
     soil_moisture integer
@@ -209,6 +209,28 @@ CREATE TABLE public.plants (
 
 
 ALTER TABLE public.plants OWNER TO growbot;
+
+--
+-- Name: plants_id_seq; Type: SEQUENCE; Schema: public; Owner: growbot
+--
+
+CREATE SEQUENCE public.plants_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.plants_id_seq OWNER TO growbot;
+
+--
+-- Name: plants_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: growbot
+--
+
+ALTER SEQUENCE public.plants_id_seq OWNED BY public.plants.id;
+
 
 --
 -- Name: robot_state; Type: TABLE; Schema: public; Owner: growbot
@@ -316,6 +338,13 @@ ALTER TABLE ONLY public.log ALTER COLUMN id SET DEFAULT nextval('public.log_id_s
 --
 
 ALTER TABLE ONLY public.plant_photos ALTER COLUMN id SET DEFAULT nextval('public.plant_photos_id_seq'::regclass);
+
+
+--
+-- Name: plants id; Type: DEFAULT; Schema: public; Owner: growbot
+--
+
+ALTER TABLE ONLY public.plants ALTER COLUMN id SET DEFAULT nextval('public.plants_id_seq'::regclass);
 
 
 --

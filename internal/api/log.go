@@ -23,7 +23,7 @@ type LogEntry struct {
 	Message   string     `json:"message" db:"message"`
 	Severity  int        `json:"severity" db:"severity"`
 	RobotID   *uuid.UUID `json:"robot_id,omitempty" db:"robot_id"`
-	PlantID   *uuid.UUID `json:"plant_id,omitempty" db:"plant_id"`
+	PlantID   *int       `json:"plant_id,omitempty" db:"plant_id"`
 	CreatedAt time.Time  `json:"created_at" db:"created_at"`
 }
 
@@ -33,7 +33,7 @@ func (a *API) LogListGet(c *gin.Context) {
 
 	input := struct {
 		RobotID  *string `form:"robot_id"`
-		PlantID  *string `form:"plant_id"`
+		PlantID  *int    `form:"plant_id"`
 		Severity *int    `form:"severity"`
 		Limit    int     `form:"limit,default=10"`
 		Offset   int     `form:"offset,default=0"`

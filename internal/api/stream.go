@@ -171,7 +171,7 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 
 		switch msg.Type {
 		case "PLANT_CAPTURE_PHOTO":
-			plantID := msg.Data["id"].(string)
+			plantID := int(msg.Data["id"].(float64))
 			plantImageB64 := msg.Data["image"].(string)
 
 			// todo: verify user owns plantID
@@ -180,7 +180,7 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 			filename := photoBucketKey(u)
 			photo := models.PlantPhoto{
 				Filename: u,
-				PlantID:  uuid.Must(uuid.Parse(plantID)),
+				PlantID:  plantID,
 			}
 
 			w, err := a.Bucket.NewWriter(ctx, filename, nil)
@@ -211,14 +211,9 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 
 		case "CREATE_LOG_ENTRY":
 			_, plantExists := msg.Data["plant_id"]
-			var plantID *uuid.UUID
+			var plantID int
 			if plantExists {
-				id, err := uuid.Parse(msg.Data["plant_id"].(string))
-				plantID = &id
-				if err != nil {
-					a.Log.WithField("data", msg.Data).WithError(err).Warnln("could not parse plant_id for CREATE_LOG_ENTRY")
-					continue
-				}
+				plantID = int(msg.Data["plant_id"].(float64))
 			}
 
 			var uid *int
@@ -239,7 +234,7 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 				Message:  msg.Data["message"].(string),
 				Severity: int(msg.Data["severity"].(float64)),
 				RobotID:  &rid,
-				PlantID:  plantID,
+				PlantID:  &plantID,
 			}
 
 			result, err := a.DB.NamedQuery("insert into log(user_id, type, message, severity, robot_id, plant_id) values (:user_id, :type, :message, :severity, :robot_id, :plant_id) returning id, created_at", entry)
@@ -267,11 +262,7 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 				continue
 			}
 
-			plantID, err := uuid.Parse(msg.Data["plant_id"].(string))
-			if err != nil {
-				a.Log.WithField("data", msg.Data).WithError(err).Warnln("could not parse plant_id for UPDATE_SOIL_MOISTURE")
-				continue
-			}
+			plantID := int(msg.Data["plant_id"].(float64))
 
 			plant := models.Plant{}
 			err = a.DB.Get(&plant, "select user_id from plants where id=$1", plantID)

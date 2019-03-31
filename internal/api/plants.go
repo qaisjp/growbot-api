@@ -2,8 +2,8 @@ package api
 
 import (
 	"net/http"
+	"strconv"
 
-	"github.com/google/uuid"
 	"github.com/teamxiv/growbot-api/internal/models"
 
 	"github.com/gin-gonic/gin"
@@ -12,8 +12,8 @@ import (
 // PlantCheck is a middleware to check whether the passed plant uuid exists,
 // and (if logged in) confirms whether the currently logged in user owns that plant
 func (a *API) PlantCheck(c *gin.Context) {
-	id := c.Param("uuid")
-	rid, err := uuid.Parse(id)
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		BadRequest(c, err.Error())
 		c.Abort()
@@ -21,7 +21,7 @@ func (a *API) PlantCheck(c *gin.Context) {
 	}
 
 	plant := models.Plant{}
-	err = a.DB.Get(&plant, "select * from plants where id = $1", rid)
+	err = a.DB.Get(&plant, "select * from plants where id = $1", id)
 	if err != nil {
 		BadRequest(c, "Plant does not exist ("+err.Error()+")")
 		c.Abort()
@@ -82,8 +82,7 @@ func (a *API) PlantDelete(c *gin.Context) {
 // PlantCreatePost gets the plant object
 func (a *API) PlantCreatePost(c *gin.Context) {
 	input := struct {
-		ID   uuid.UUID `json:"id,omitempty"`
-		Name string    `json:"name"`
+		Name string `json:"name"`
 	}{}
 
 	err := c.BindJSON(&input)
@@ -92,37 +91,30 @@ func (a *API) PlantCreatePost(c *gin.Context) {
 		return
 	}
 
-	if input.ID == uuid.Nil {
-		input.ID = uuid.New()
-	} else {
-		// Check the given UUID doesn't already exist
-		var count int
-		err := a.DB.Get(&count, "select count(id) from plants where id = $1", input.ID)
-		if err != nil {
-			a.error(c, http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		if count > 0 {
-			a.error(c, http.StatusBadRequest, "This plant is already in the database.")
-			return
-		}
-	}
-
 	row := models.Plant{
-		ID:     input.ID,
 		Name:   input.Name,
 		UserID: c.GetInt("user_id"),
 	}
 
-	_, err = a.DB.NamedQuery("insert into plants(id, name, user_id) values (:id, :name, :user_id)", row)
+	result, err := a.DB.NamedQuery("insert into plants(name, user_id) values (:name, :user_id) returning id", row)
 	if err != nil {
 		a.error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
+	if !result.Next() {
+		a.error(c, http.StatusInternalServerError, "Expected result.Next() to return true")
+		return
+	}
+
+	var id int
+	if err := result.StructScan(&id); err != nil {
+		a.error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"id": input.ID,
+		"id": id,
 	})
 }
 

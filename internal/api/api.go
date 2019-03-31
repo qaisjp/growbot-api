@@ -192,7 +192,7 @@ func NewAPI(
 		plants.GET("", a.PlantListGet)
 		plants.POST("", a.PlantCreatePost) // create a plant, only {name: ""}
 
-		plant := plants.Group("/:uuid", a.PlantCheck)
+		plant := plants.Group("/:id", a.PlantCheck)
 		{
 			plant.GET("", a.PlantGet)
 			plant.DELETE("", a.PlantDelete)
