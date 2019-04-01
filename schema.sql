@@ -132,7 +132,7 @@ CREATE TABLE public.log (
     severity integer NOT NULL,
     robot_id uuid,
     plant_id integer,
-    created_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 
@@ -166,7 +166,7 @@ ALTER SEQUENCE public.log_id_seq OWNED BY public.log.id;
 
 CREATE TABLE public.plant_photos (
     id integer NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    created_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     filename uuid NOT NULL,
     plant_id integer NOT NULL
 );
@@ -265,8 +265,8 @@ CREATE TABLE public.robots (
     admin_token text NOT NULL,
     user_id integer,
     title text DEFAULT ''::text NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 
@@ -283,8 +283,8 @@ CREATE TABLE public.users (
     password character(60) NOT NULL,
     email character varying(254) NOT NULL,
     is_activated boolean DEFAULT false NOT NULL,
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 
@@ -532,3 +532,4 @@ ALTER TABLE ONLY public.robots
 --
 -- PostgreSQL database dump complete
 --
+
