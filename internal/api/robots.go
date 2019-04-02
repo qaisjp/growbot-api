@@ -200,6 +200,50 @@ func (a *API) RobotMovePost(c *gin.Context) {
 	})
 }
 
+func payloadSetStandby(standby bool) interface{} {
+	return struct {
+		Type string `json:"type"`
+		Data bool   `json:"data"`
+	}{
+		Type: "standby",
+		Data: standby,
+	}
+}
+
+func (a *API) RobotSetStandby(c *gin.Context) {
+	robot := c.MustGet("robot").(*models.Robot)
+
+	var input struct {
+		Standby bool
+	}
+
+	if err := c.BindJSON(&input); err != nil {
+		a.error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	_, err := a.DB.Exec("update robot_state set standby = $2 where id = $1", robot.ID, input.Standby)
+	if err != nil {
+		a.error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	payload := payloadSetStandby(input.Standby)
+
+	robotCtxsMutex.Lock()
+	wctx, ok := robotCtxs[robot.ID]
+	robotCtxsMutex.Unlock()
+
+	if ok {
+		wsc := wctx.MustGet("ws").(*websocket.Conn)
+		wsc.WriteJSON(payload)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+	})
+}
+
 func (a *API) RobotStartDemoPost(c *gin.Context) {
 	robot := c.MustGet("robot").(*models.Robot)
 

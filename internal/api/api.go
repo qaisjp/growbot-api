@@ -172,6 +172,7 @@ func NewAPI(
 		aRobot.POST("/move", a.RobotMovePost)
 		aRobot.POST("/startDemo", a.RobotStartDemoPost)
 		aRobot.PATCH("/settings", a.RobotSettingsPatch)
+		aRobot.POST("/standby", a.RobotSetStandby)
 	}
 
 	// Photos

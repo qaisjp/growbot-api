@@ -283,6 +283,16 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 	// On first load, gather events, and push to client
 	a.pingRobotEvents(rid)
 
+	{
+		var standby bool
+		if err := a.DB.Get(&standby, "select standby from robot_state where id = $1", rid); err != nil {
+			a.Log.WithError(err).WithField("rid", rid).Warnln("Could not read standby from db")
+		} else {
+			payload := payloadSetStandby(standby)
+			c.WriteJSON(payload)
+		}
+	}
+
 	for {
 		_, b, err := c.ReadMessage()
 		if err != nil {
