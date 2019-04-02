@@ -27,7 +27,7 @@ type RobotState struct {
 	ID           uuid.UUID `json:"id" db:"id"`
 	BatteryLevel int       `json:"battery_level" db:"battery_level"`
 	WaterLevel   int       `json:"water_level" db:"water_level"`
-	Distress     bool      `json:"distress" db:"distress"`
+	Standby      bool      `json:"standby" db:"standby"`
 
 	SeenAt *time.Time `json:"seen_at" db:"seen_at"`
 }

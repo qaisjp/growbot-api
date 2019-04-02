@@ -240,7 +240,7 @@ CREATE TABLE public.robot_state (
     id uuid NOT NULL,
     battery_level integer DEFAULT 0 NOT NULL,
     water_level integer DEFAULT 0 NOT NULL,
-    distress boolean DEFAULT false NOT NULL,
+    standby boolean DEFAULT true NOT NULL,
     seen_at timestamp without time zone
 );
 
