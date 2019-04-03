@@ -111,7 +111,7 @@ func (a *API) pingRobotEvents(rid uuid.UUID, boot bool) {
 
 	query := ""
 	if boot {
-		query = "and not a.ephemeral"
+		query = "and not e.ephemeral"
 	}
 
 	err := a.DB.Select(&events, "select e.*, json_agg(a) as actions from event_actions as a, events as e where a.robot_id=$1 and a.event_id=e.id "+query+" group by e.id", rid)
@@ -123,6 +123,9 @@ func (a *API) pingRobotEvents(rid uuid.UUID, boot bool) {
 	result := make([]expandedEvent, len(events))
 
 	for i, event := range events {
+		if event.Ephemeral {
+			a.DB.MustExec("delete from events where id = $1", event.ID)
+		}
 		result[i].Event = event.Event
 
 		if err := event.Actions.Unmarshal(&result[i].Action); err != nil {
