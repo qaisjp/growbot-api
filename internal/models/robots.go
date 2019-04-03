@@ -12,6 +12,7 @@ type Robot struct {
 	AdminToken string    `json:"-" db:"admin_token"`
 	UserID     *int      `json:"user_id,omitempty" db:"user_id"`
 	Title      *string   `json:"title,omitempty" db:"title"`
+	Ephemeral  bool      `json:"ephemeral,omitempty" db:"ephemeral"`
 
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`

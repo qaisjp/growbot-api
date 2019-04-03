@@ -92,7 +92,8 @@ CREATE TABLE public.events (
     id integer NOT NULL,
     summary text NOT NULL,
     recurrence text[] DEFAULT ARRAY[]::text[] NOT NULL,
-    user_id integer NOT NULL
+    user_id integer NOT NULL,
+    ephemeral boolean DEFAULT false NOT NULL
 );
 
 
