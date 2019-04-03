@@ -281,7 +281,7 @@ func (a *API) StreamRobot(ctx *gin.Context) {
 	}()
 
 	// On first load, gather events, and push to client
-	a.pingRobotEvents(rid)
+	a.pingRobotEvents(rid, true)
 
 	{
 		var standby bool

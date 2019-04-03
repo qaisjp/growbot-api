@@ -13,6 +13,7 @@ type Event struct {
 	Summary     string         `json:"summary" db:"summary"`
 	Recurrences pq.StringArray `json:"recurrences" db:"recurrence"`
 	UserID      int            `json:"user_id" db:"user_id"`
+	Ephemeral   bool           `json:"ephemeral,omitempty" db:"ephemeral"`
 }
 
 type EventAction struct {

@@ -94,7 +94,7 @@ func (a *API) expandedEventsByUserID(userID int) ([]expandedEvent, error) {
 	return result, nil
 }
 
-func (a *API) pingRobotEvents(rid uuid.UUID) {
+func (a *API) pingRobotEvents(rid uuid.UUID, boot bool) {
 	robotCtxsMutex.Lock()
 	c, ok := robotCtxs[rid]
 	robotCtxsMutex.Unlock()
@@ -109,7 +109,12 @@ func (a *API) pingRobotEvents(rid uuid.UUID) {
 		Actions types.JSONText `json:"actions" db:"actions"`
 	}{}
 
-	err := a.DB.Select(&events, "select e.*, json_agg(a) as actions from event_actions as a, events as e where a.robot_id=$1 and a.event_id=e.id group by e.id;", rid)
+	query := ""
+	if boot {
+		query = "and not a.ephemeral"
+	}
+
+	err := a.DB.Select(&events, "select e.*, json_agg(a) as actions from event_actions as a, events as e where a.robot_id=$1 and a.event_id=e.id "+query+" group by e.id", rid)
 	if err != nil {
 		a.Log.WithError(err).WithField("rid", rid).Warnln("could not get events from db")
 		return
@@ -250,12 +255,12 @@ func (a *API) EventCreatePost(c *gin.Context) {
 
 	hasActions := len(input.Actions) > 0
 
-	query := `insert into events (summary, recurrence, user_id) values ($1, $2, $3) returning id`
+	query := `insert into events (summary, recurrence, user_id, ephemeral) values ($1, $2, $3, $4) returning id`
 	if hasActions {
 		query = "with inserted as (" + query + ")"
 	}
 
-	args := []interface{}{input.Event.Summary, input.Recurrences, userID}
+	args := []interface{}{input.Event.Summary, input.Recurrences, userID, input.Ephemeral}
 	rids := make(map[uuid.UUID]struct{})
 
 	for i, action := range input.Actions {
@@ -284,7 +289,7 @@ func (a *API) EventCreatePost(c *gin.Context) {
 	}
 
 	for rid := range rids {
-		a.pingRobotEvents(rid)
+		a.pingRobotEvents(rid, false)
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
