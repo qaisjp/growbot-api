@@ -4,14 +4,20 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"image"
+	"image/draw"
+	"image/jpeg"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
 	"github.com/mattn/go-mjpeg"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/inconsolata"
+	"golang.org/x/image/math/fixed"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -42,11 +48,16 @@ func (s *Stream) Update(b []byte) error {
 	return s.Inner.Update(b)
 }
 
-var deadBytes []byte
+var deadImg image.Image
 
 func init() {
 	var err error
-	deadBytes, err = ioutil.ReadFile("dead.jpeg")
+	f, err := os.Open("dead.jpeg")
+	if err != nil {
+		panic(err)
+	}
+
+	deadImg, err = jpeg.Decode(f)
 	if err != nil {
 		panic(err)
 	}
@@ -75,7 +86,29 @@ func (a *API) GetStream(rid uuid.UUID) *Stream {
 				case <-tick.C:
 					if time.Now().Sub(stream.LastUpdate) > VideoDeathThreshold {
 						// a.Log.WithField("uuid", rid).Infoln("Pushed dead image")
-						if err := stream.Inner.Update(deadBytes); err != nil {
+						img := image.NewRGBA(image.Rect(0, 0, 300, 267))
+						draw.Over.Draw(img, img.Bounds(), deadImg, deadImg.Bounds().Min)
+
+						// From https://stackoverflow.com/a/38300583/1517394
+						d := &font.Drawer{
+							Dst:  img,
+							Src:  image.Black,
+							Face: inconsolata.Bold8x16,
+						}
+
+						text := time.Now().Format("02 Jan 15:04:05")
+						d.Dot = fixed.Point26_6{
+							X: (fixed.I(300) - d.MeasureString(text)) / 2,
+							Y: fixed.I(200 * 64),
+						}
+						d.DrawString(text)
+
+						buf := new(bytes.Buffer)
+						if err := jpeg.Encode(buf, img, nil); err != nil {
+							a.Log.WithError(err).WithField("uuid", rid).Warnln("Could not encode jpeg")
+							continue
+						}
+						if err := stream.Inner.Update(buf.Bytes()); err != nil {
 							a.Log.WithError(err).WithField("uuid", rid).Warnln("Could not add dead image")
 						}
 					}
