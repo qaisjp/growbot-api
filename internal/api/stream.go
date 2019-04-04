@@ -99,7 +99,7 @@ func (a *API) GetStream(rid uuid.UUID) *Stream {
 						text := time.Now().Format("02 Jan 15:04:05")
 						d.Dot = fixed.Point26_6{
 							X: (fixed.I(300) - d.MeasureString(text)) / 2,
-							Y: fixed.I(200 * 64),
+							Y: fixed.I(200),
 						}
 						d.DrawString(text)
 
